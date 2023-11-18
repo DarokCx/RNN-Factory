@@ -30,7 +30,8 @@ args.load_model = '7B.pth'
 
 model = RWKV_v5(args).cuda()
 
-from src.tokenizer import world#neox, world, racoon
+
+from src.tokenizer import world #neox, world, racoon
 tokenizer = world
 
 context = '''
@@ -41,6 +42,7 @@ Please translate the next sentence into French.
 '''
 
 doGreedy = True
+
 
 NUM_TRIALS = 1
 LENGTH_PER_TRIAL = 100
@@ -85,8 +87,8 @@ for i in range(len(testdata[0])):
 # else:
 data = extract_column(dataset_name, split, column_name)
 
-batchsize = 100
-batches = 100
+batchsize = 10
+batches = 4
 with open("output.txt", "w") as f:
     for step in range(0, batches*batchsize, batchsize):
         
@@ -173,9 +175,6 @@ with open("output.txt", "w") as f:
                 #     char = tokenizer.itos[ttt]
                 #     print(char, end="", flush=True)
                 # else:
-                char = tokenizer.decode(ctx[3][-1:])
-                if '\ufffd' not in char: # is valid utf8 string?
-                    print(char, end="", flush=True)
                     
 
             record_time('total')
