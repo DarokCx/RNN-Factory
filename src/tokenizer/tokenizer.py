@@ -1,3 +1,4 @@
+
 class RWKV_TOKENIZER():
     table: list[list[list[bytes]]]
     good: list[set[int]]
