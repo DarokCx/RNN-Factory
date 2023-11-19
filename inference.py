@@ -29,7 +29,7 @@ args = types.SimpleNamespace()
 args.linear = InferenceLinear
 args.load_model = '7B.pth'
 
-model = RWKV_v5(args).cpu()
+model = RWKV_v5(args).cuda()
 
 
 from src.tokenizer import world #neox, world, racoon
@@ -88,8 +88,8 @@ for i in range(len(testdata[0])):
 # else:
 data = extract_column(dataset_name, split, column_name)
 
-batchsize = 3
-batches = 2
+batchsize = 125
+batches = 1000
 instructions = []
 ctext = []
 translation = []
