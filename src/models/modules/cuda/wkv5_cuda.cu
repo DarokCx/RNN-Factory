@@ -10,6 +10,7 @@ __global__ void kernel_forward(const int B, const int T, const int C, const int 
                                const F *__restrict__ const _r, const F *__restrict__ const _k, const F *__restrict__ const _v, const float *__restrict__ _w, const F *__restrict__ _u,
                                F *__restrict__ const _y)
 {
+    
     const int b = blockIdx.x / H;
     const int h = blockIdx.x % H;
     const int i = threadIdx.x;
