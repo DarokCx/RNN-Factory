@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
 
-    parser.add_argument("--load_model", default="", type=str)  # full path, with .pth
+    parser.add_argument("--load_model", default="1B5.pth", type=str)  # full path, with .pth
     parser.add_argument("--wandb", default="Translate", type=str)  # wandb project name. if "" then don't use wandb
     parser.add_argument("--proj_dir", default="out-3", type=str)
     parser.add_argument("--random_seed", default="-1", type=int)
