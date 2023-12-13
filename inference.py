@@ -18,7 +18,7 @@ args = types.SimpleNamespace()
 
 
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
-MODEL_NAME = 'out/rwkv-5.pth'
+MODEL_NAME = 'out-2/rwkv-4.pth'
 args.load_model = MODEL_NAME
 
 
@@ -28,16 +28,20 @@ args.load_model = MODEL_NAME
 
 from src.models import RWKV_v4, RWKV_v5, Experimental
 args.load_model = MODEL_NAME
-model = Experimental(args).eval().requires_grad_(False).float().cuda()
+model = Experimental(args).eval().requires_grad_(False).float().cpu()
 
 from src.tokenizer import neox, world, racoon
 tokenizer = world
 
+#We've questioned the planet's inhabitants.
+#You're joking, right?
+#We've questioned the planet's inhabitants.
+
 context =   '''
-Source: what is your name, again?
+Source: une femme
 '''
 
-doGreedy = True
+doGreedy = False
 
 NUM_TRIALS = 3
 LENGTH_PER_TRIAL = 333

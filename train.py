@@ -50,25 +50,31 @@ if __name__ == "__main__":
     # --lr_init 1e-5 --lr_final 1e-5 --warmup_steps 0 --beta1 0.9 --beta2 0.999 --adam_eps 1e-8 \
     # --accelerator gpu --devices 1 --precision fp16 --strategy deepspeed_stage_2_offload --grad_cp 1
 
+# python train.py --vocab_size 50277 \
+# --ctx_len 1024 --epoch_steps 200 --epoch_count 1000 --epoch_begin 0 --epoch_save 1 \
+# --micro_bsz 11 --n_layer 24 --n_embd 2048 --pre_ffn 0 --head_qk 0 \
+# --lr_init 1e-5 --lr_final 1e-5 --warmup_steps 0 --beta1 0.9 --beta2 0.999 --adam_eps 1e-8 \
+# --accelerator gpu --devices 1 --precision fp16 --strategy deepspeed_stage_2_offload --grad_cp 1
+
     parser = ArgumentParser()
 
     parser.add_argument("--load_model", default="", type=str)  # full path, with .pth
-    parser.add_argument("--wandb", default="rwkv-xres", type=str)  # wandb project name. if "" then don't use wandb
-    parser.add_argument("--proj_dir", default="out", type=str)
+    parser.add_argument("--wandb", default="Translate", type=str)  # wandb project name. if "" then don't use wandb
+    parser.add_argument("--proj_dir", default="out-3", type=str)
     parser.add_argument("--random_seed", default="-1", type=int)
 
-    parser.add_argument("--data_file", default="en-fr.tmx.py", type=str)
-    parser.add_argument("--data_type", default="numpy", type=str)
+    parser.add_argument("--data_file", default="all_translation_pairs.csv", type=str)
+    parser.add_argument("--data_type", default="utf-8", type=str)
     parser.add_argument("--vocab_size", default=2**16, type=int)  # vocab_size = 0 means auto (for char-level LM and .txt data)
 
-    parser.add_argument("--ctx_len", default=512, type=int)
-    parser.add_argument("--epoch_steps", default=5000, type=int)  # a mini "epoch" has [epoch_steps] steps tf32/ 7.5 fp16 / 9.0
+    parser.add_argument("--ctx_len", default=128, type=int)
+    parser.add_argument("--epoch_steps", default=10000, type=int)  # a mini "epoch" has [epoch_steps] steps tf32/ 7.5 fp16 / 9.0
     parser.add_argument("--epoch_count", default=10, type=int)  # train for this many "epochs". will continue afterwards with lr = lr_final
     parser.add_argument("--epoch_begin", default=0, type=int)  # if you load a model trained for x "epochs", set epoch_begin = x
     parser.add_argument("--epoch_save", default=1, type=int)  # save the model every [epoch_save] "epochs"
 
-    parser.add_argument("--micro_bsz", default=4, type=int)  # micro batch size (batch size per GPU)
-    parser.add_argument("--n_layer", default=6, type=int)
+    parser.add_argument("--micro_bsz", default=16, type=int)  # micro batch size (batch size per GPU)
+    parser.add_argument("--n_layer", default=12, type=int)
     parser.add_argument("--n_embd", default=512, type=int)
     parser.add_argument("--dim_att", default=0, type=int)
     parser.add_argument("--dim_ffn", default=1024, type=int)
@@ -77,9 +83,9 @@ if __name__ == "__main__":
     parser.add_argument("--tiny_att_dim", default=0, type=int)  # tiny attention dim
     parser.add_argument("--tiny_att_layer", default=-999, type=int)  # tiny attention @ which layer
 
-    parser.add_argument("--lr_init", default=4e-4, type=float)  # 6e-4 for L12-D768, 4e-4 for L24-D1024, 3e-4 for L24-D2048
+    parser.add_argument("--lr_init", default=3e-4, type=float)  # 6e-4 for L12-D768, 4e-4 for L24-D1024, 3e-4 for L24-D2048
     parser.add_argument("--lr_final", default=1e-5, type=float)
-    parser.add_argument("--warmup_steps", default=-1, type=int)  # try 50 if you load a model
+    parser.add_argument("--warmup_steps", default=10, type=int)  # try 50 if you load a model
     parser.add_argument("--beta1", default=0.9, type=float)
     parser.add_argument("--beta2", default=0.99, type=float)  # use 0.999 when your model is close to convergence
     parser.add_argument("--adam_eps", default=1e-8, type=float)
@@ -298,7 +304,7 @@ if __name__ == "__main__":
     elif args.precision == "fp16":
         args.precision = 16
     else:
-        args.precision = "bf16-mixed"
+        args.precision = "bf16"#-mixed"
 
     ########################################################################################################
 

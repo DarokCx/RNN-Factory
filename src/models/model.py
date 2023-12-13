@@ -48,7 +48,7 @@ class experimentalBlock(nn.Module):
         from .modules.LongMem import Long_Mem, RWKVv4Att
         from .modules.ShortMem import Short_Mem, WaveNet_Mem
         
-        self.ffn = Feed_Forward(args, layer_id) if layer_id == self.lastlayer else Long_Mem(args, layer_id)
+        self.ffn = Feed_Forward(args, layer_id) #if layer_id == self.lastlayer else Long_Mem(args, layer_id)
         self.att = Long_Mem(args, layer_id)
         
   

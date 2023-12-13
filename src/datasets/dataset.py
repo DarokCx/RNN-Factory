@@ -16,6 +16,9 @@ instruct = load_dataset("WizardLM/WizardLM_evol_instruct_70k", streaming=True, s
 mdata = iter(enwiki), iter(mcode), iter(instruct)
 
 class MyDataset(Dataset):
+    global_rank = 0
+    real_epoch = 0
+    world_size = 1
     def __init__(self, args):
         self.args = args
 
@@ -130,9 +133,9 @@ class MyDataset(Dataset):
 
     def __getitem__(self, idx):
         args = self.args
-        # rank = self.global_rank
-        # epoch = self.real_epoch
-        # world_size = self.world_size
+        rank = self.global_rank
+        epoch = self.real_epoch
+        world_size = self.world_size
         # print(f"epoch {epoch} idx {idx} rank {rank}/{world_size}")
         if args.data_type == "stream":
             
