@@ -52,9 +52,9 @@ if __name__ == "__main__":
 
 # python train.py --vocab_size 50277 \
 # --ctx_len 1024 --epoch_steps 200 --epoch_count 1000 --epoch_begin 0 --epoch_save 1 \
-# --micro_bsz 11 --n_layer 24 --n_embd 2048 --pre_ffn 0 --head_qk 0 \
+# --micro_bsz 5 --n_layer 24 --n_embd 2048 --pre_ffn 0 --head_qk 0 \
 # --lr_init 1e-5 --lr_final 1e-5 --warmup_steps 0 --beta1 0.9 --beta2 0.999 --adam_eps 1e-8 \
-# --accelerator gpu --devices 1 --precision fp16 --strategy deepspeed_stage_2_offload --grad_cp 1
+# --accelerator gpu --devices 1 --precision fp16 --strategy deepspeed_stage_2 --grad_cp 1
 
     parser = ArgumentParser()
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--proj_dir", default="out-3", type=str)
     parser.add_argument("--random_seed", default="-1", type=int)
 
-    parser.add_argument("--data_file", default="all_translation_pairs.csv", type=str)
+    parser.add_argument("--data_file", default="output_tokenized_data.npy", type=str)
     parser.add_argument("--data_type", default="utf-8", type=str)
     parser.add_argument("--vocab_size", default=2**16, type=int)  # vocab_size = 0 means auto (for char-level LM and .txt data)
 

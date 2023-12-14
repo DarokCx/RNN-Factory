@@ -4,7 +4,12 @@
 **/__pycache__
 train_log.txt
 lightning_logs
-*.npy
+#*.npy
 *.tsv
 en-fr.tmx.py
 *.tmx
+en-it.csv
+en-ger.csv
+.gitignore
+en-ch.csv
+en-fr.csv
