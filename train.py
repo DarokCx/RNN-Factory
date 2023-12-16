@@ -73,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--epoch_begin", default=0, type=int)  # if you load a model trained for x "epochs", set epoch_begin = x
     parser.add_argument("--epoch_save", default=1, type=int)  # save the model every [epoch_save] "epochs"
 
-    parser.add_argument("--micro_bsz", default=16, type=int)  # micro batch size (batch size per GPU)
+    parser.add_argument("--micro_bsz", default=5, type=int)  # micro batch size (batch size per GPU)
     parser.add_argument("--n_layer", default=24, type=int)
     parser.add_argument("--n_embd", default=2048, type=int)
     parser.add_argument("--dim_att", default=0, type=int)
