@@ -7,3 +7,5 @@ inquirer
 ninja
 pytorch-lightning
 datasets
+wandb
+deepspeed
