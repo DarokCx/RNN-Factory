@@ -54,7 +54,7 @@ if __name__ == "__main__":
 # --ctx_len 1024 --epoch_steps 200 --epoch_count 1000 --epoch_begin 0 --epoch_save 1 \
 # --micro_bsz 5 --n_layer 24 --n_embd 2048 --pre_ffn 0 --head_qk 0 \
 # --lr_init 1e-5 --lr_final 1e-5 --warmup_steps 0 --beta1 0.9 --beta2 0.999 --adam_eps 1e-8 \
-# --accelerator gpu --devices 1 --precision fp16 --strategy deepspeed_stage_2 --grad_cp 1
+# --accelerator gpu --devices 1 --precision bf16 --strategy deepspeed_stage_2 --grad_cp 1
 
     parser = ArgumentParser()
 
@@ -74,8 +74,8 @@ if __name__ == "__main__":
     parser.add_argument("--epoch_save", default=1, type=int)  # save the model every [epoch_save] "epochs"
 
     parser.add_argument("--micro_bsz", default=16, type=int)  # micro batch size (batch size per GPU)
-    parser.add_argument("--n_layer", default=12, type=int)
-    parser.add_argument("--n_embd", default=512, type=int)
+    parser.add_argument("--n_layer", default=24, type=int)
+    parser.add_argument("--n_embd", default=2048, type=int)
     parser.add_argument("--dim_att", default=0, type=int)
     parser.add_argument("--dim_ffn", default=1024, type=int)
     parser.add_argument("--pre_ffn", default=0, type=int)  # replace first att layer by ffn (sometimes better)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument("--accelerator", default="auto", type=str)  # cpu / gpu / ddp / ddp_find_unused_parameters_false
     parser.add_argument("--devices", default=1, type=int)  # number of GPUs
     parser.add_argument("--precision", default="bf16", type=str)  # fp32 / tf32 / fp16 / bf16
-    parser.add_argument("--strategy", default="ddp", type=str)  # ddp / ddp_find_unused_parameters_false / deepspeed_stage_1 / deepspeed_stage_2 / deepspeed_stage_2_offload / deepspeed_stage_3 / deepspeed_stage_3_offload
+    parser.add_argument("--strategy", default="deepspeed_stage_2", type=str)  # ddp / ddp_find_unused_parameters_false / deepspeed_stage_1 / deepspeed_stage_2 / deepspeed_stage_2_offload / deepspeed_stage_3 / deepspeed_stage_3_offload
     
     #num nodes
     parser.add_argument("--num_nodes", default=1, type=int)  # number of nodes
