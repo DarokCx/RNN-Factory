@@ -1,0 +1,9 @@
+py-cpuinfo
+pandas 
+tqdm 
+gradio 
+transformers 
+inquirer 
+ninja
+pytorch-lightning
+datasets
