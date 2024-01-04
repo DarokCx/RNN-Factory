@@ -14,11 +14,8 @@ args = types.SimpleNamespace()
 # Step 1: set model & config (use v4 to run your trained-from-scratch models. v4 and v4neo are compatible)
 ########################################################################################################
 
-
-
-
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
-MODEL_NAME = 'out-2/rwkv-4.pth'
+MODEL_NAME = 'out-4/rwkv-65.pth'
 args.load_model = MODEL_NAME
 
 
@@ -35,18 +32,18 @@ tokenizer = world
 
 #We've questioned the planet's inhabitants.
 #You're joking, right?
-#We've questioned the planet's inhabitants.
+# Please translate the following sentence in french:
 
 context =   '''
-Source: une femme
-'''
+English: We've questioned the planet's inhabitants.
+French: '''
 
 doGreedy = False
 
 NUM_TRIALS = 3
 LENGTH_PER_TRIAL = 333
 
-TEMPERATURE = 0.9
+TEMPERATURE = 1
 top_p = 0.9
 top_p_newline = 0.9  # only used in TOKEN_MODE = char
 
@@ -64,7 +61,7 @@ print("Memory use:", torch.cuda.memory_allocated() / 1024 ** 3, "GB")
 
 
 
-testdata = torch.randint(0, 100, (64,))
+testdata = torch.randint(0, 100, (4,))
 
 model.resetState()
 atonce = model.forward(testdata, full_output=True)
