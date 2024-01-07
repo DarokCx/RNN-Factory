@@ -14,8 +14,9 @@ args = types.SimpleNamespace()
 # Step 1: set model & config (use v4 to run your trained-from-scratch models. v4 and v4neo are compatible)
 ########################################################################################################
 
+
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
-MODEL_NAME = 'out-4/rwkv-65.pth'
+MODEL_NAME = 'out-4-2/rwkv-100.pth'
 args.load_model = MODEL_NAME
 
 
@@ -25,22 +26,29 @@ args.load_model = MODEL_NAME
 
 from src.models import RWKV_v4, RWKV_v5, Experimental
 args.load_model = MODEL_NAME
-model = Experimental(args).eval().requires_grad_(False).float().cpu()
+model = Experimental(args).eval().requires_grad_(False).float().cuda()
 
 from src.tokenizer import neox, world, racoon
 tokenizer = world
 
 #We've questioned the planet's inhabitants.
 #You're joking, right?
-# Please translate the following sentence in french:
 
-context =   '''
-English: We've questioned the planet's inhabitants.
-French: '''
+# User: Please translate the following sentence into French:
+# Source: Human beings genetic teleportation.\n\n
+# Assistant:
 
-doGreedy = False
+context =   '''\n\n
+User: Please translate the following sentence into French. 
+Source: We've questioned the planet's inhabitants.\n\n
+assistant:
+'''
 
-NUM_TRIALS = 3
+doGreedy = True
+if doGreedy:
+    NUM_TRIALS = 1
+else:
+    NUM_TRIALS = 3
 LENGTH_PER_TRIAL = 333
 
 TEMPERATURE = 1

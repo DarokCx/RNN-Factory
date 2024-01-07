@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--load_model", default="0.4B.pth", type=str)  # full path, with .pth
     parser.add_argument("--wandb", default="Translate.4", type=str)  # wandb project name. if "" then don't use wandb
-    parser.add_argument("--proj_dir", default="out-4", type=str)
+    parser.add_argument("--proj_dir", default="out-4-2", type=str)
     parser.add_argument("--random_seed", default="-1", type=int)
 
     parser.add_argument("--data_file", default="output_tokenized_data.npy", type=str)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     parser.add_argument("--vocab_size", default=2**16, type=int)  # vocab_size = 0 means auto (for char-level LM and .txt data)
 
     parser.add_argument("--ctx_len", default=128, type=int)
-    parser.add_argument("--epoch_steps", default=200, type=int)  # a mini "epoch" has [epoch_steps] steps tf32/ 7.5 fp16 / 9.0
+    parser.add_argument("--epoch_steps", default=800, type=int)  # a mini "epoch" has [epoch_steps] steps tf32/ 7.5 fp16 / 9.0
     parser.add_argument("--epoch_count", default=10, type=int)  # train for this many "epochs". will continue afterwards with lr = lr_final
     parser.add_argument("--epoch_begin", default=0, type=int)  # if you load a model trained for x "epochs", set epoch_begin = x
     parser.add_argument("--epoch_save", default=5, type=int)  # save the model every [epoch_save] "epochs"
@@ -83,9 +83,9 @@ if __name__ == "__main__":
     parser.add_argument("--tiny_att_dim", default=0, type=int)  # tiny attention dim
     parser.add_argument("--tiny_att_layer", default=-999, type=int)  # tiny attention @ which layer
 
-    parser.add_argument("--lr_init", default=1e-5, type=float)  # 6e-4 for L12-D768, 4e-4 for L24-D1024, 3e-4 for L24-D2048
-    parser.add_argument("--lr_final", default=1e-5, type=float)
-    parser.add_argument("--warmup_steps", default=50, type=int)  # try 50 if you load a model
+    parser.add_argument("--lr_init", default=1e-6, type=float)  # 6e-4 for L12-D768, 4e-4 for L24-D1024, 3e-4 for L24-D2048
+    parser.add_argument("--lr_final", default=1e-6, type=float)
+    parser.add_argument("--warmup_steps", default=0, type=int)  # try 50 if you load a model
     parser.add_argument("--beta1", default=0.9, type=float)
     parser.add_argument("--beta2", default=0.99, type=float)  # use 0.999 when your model is close to convergence
     parser.add_argument("--adam_eps", default=1e-8, type=float)

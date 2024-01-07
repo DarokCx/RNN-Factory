@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 from itertools import permutations
-import src.tokenizer as tk  # Assuming the tokenizer script is in a module named 'src'
+import src.tokenizer as tk
 
 def load_csv_files(file_paths):
     combined_data = pd.DataFrame(columns=['Source Language', 'Target Language', 'Source Text', 'Target Text'])
