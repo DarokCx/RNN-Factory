@@ -25,9 +25,11 @@ def create_language_permutations(combined_data):
 def tokenize_and_save(permutations_data, output_file):
     tokenized_batches = []
     for index, row in permutations_data.iterrows():
+        target_language = row['Target Language']
         source_text = row['Source Text']
         target_text = row['Target Text']
-        tokenized_pair = tk.world.encode("\nSource: " + source_text + "\nTarget: " + target_text) + [0]
+        formatted_text = f"Please translate the following sentence into {target_language}\nSource: {source_text}\nTarget: {target_text}"
+        tokenized_pair = tk.world.encode(formatted_text) + [0]
         tokenized_batches.append(tokenized_pair)
 
         # Assuming a batch size of 10000 for saving
@@ -41,6 +43,7 @@ def tokenize_and_save(permutations_data, output_file):
         flat_list = [item for sublist in tokenized_batches for item in sublist]
         np.save(output_file, flat_list, allow_pickle=True)
 
+
 file_paths = [
     'en-fr.csv',
     'en-it.csv',
@@ -50,4 +53,4 @@ file_paths = [
 
 combined_data = load_csv_files(file_paths)
 permutations_data = create_language_permutations(combined_data)
-tokenize_and_save(permutations_data, 'output_tokenized_data.npy')
+tokenize_and_save(permutations_data, 'output_tokenized_data_with_prompt.npy')
