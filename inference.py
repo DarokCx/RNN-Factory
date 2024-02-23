@@ -24,12 +24,12 @@ column_name = 'response'  # Specify the column you want to extract
 from src.samplers import sample_logits
 from src.models.modules.Linear import InferenceLinear
 
-from src.models import RWKV_v4, RWKV_v5, Experimental
+from src.models import RWKV_v4, RWKV_v5, Experimental, v5simple
 args = types.SimpleNamespace()
-args.linear = InferenceLinear
-args.load_model = '7B.pth'
+# args.linear = InferenceLinear
+args.load_model = '1B5.pth'
 
-model = RWKV_v5(args).cuda()
+model = v5simple(args).cuda()
 
 
 from src.tokenizer import world #neox, world, racoon
@@ -155,19 +155,23 @@ with open("output.txt", "w") as f:
                 if i == src_len:
                     model.resetState()
 
-                    states = [model.forward([ctx[o]], None) for o in range(len(ctx))]
+                    states = [model.forward([ctx[o]], model.new_state(1)) for o in range(len(ctx))]
                     # print(states.__len__())
-                    keys = states[0][1].keys()
-                    for key in keys:
-                        states[0][1][key] = torch.cat([states[o][1][key] for o in range(len(ctx))], dim=0)
+                    # keys = states[0][1].keys()
+                    # for key in keys:
+                    #     states[0][1][key] = torch.cat([states[o][1][key] for o in range(len(ctx))], dim=0)
+                    newstate = model.newState(len(ctx))
+                    for i in range(len(ctx)):
+                        newstate[0][:,:,i] = states[i][1][0][:,:,0]
+                        newstate[1][:,i] = states[i][1][1][:,0]
                     
-                    model.setState(states[0][1])
+                    model.setState(newstate)
                     logits = [states[o][0] for o in range(len(ctx))]
                     out = torch.stack(logits, dim=0).reshape(len(ctx), -1)
                 
                 
                 else:
-                    out = model.forward(x)
+                    out,newstate = model.forward(x,newstate)
                 if DEBUG_DEBUG:
                     print("model", np.array(x), "==>", np.array(out), np.max(out.cpu().numpy()), np.min(out.cpu().numpy()))
                 # if TOKEN_MODE == "pile":
