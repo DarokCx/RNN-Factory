@@ -6,6 +6,7 @@ import numpy as np
 import types, time, gc
 import torch
 from extract import extract_column
+import pandas as pd
 
 
 ########################################################################################################
@@ -24,14 +25,14 @@ from src.samplers import sample_logits
 from src.models.modules.Linear import InferenceLinear
 
 from src.models import RWKV_v4, RWKV_v5, Experimental
-from src.models.modules.Linear import Quantized
 args = types.SimpleNamespace()
 args.linear = InferenceLinear
 args.load_model = '7B.pth'
 
 model = RWKV_v5(args).cpu()
 
-from src.tokenizer import world#neox, world, racoon
+
+from src.tokenizer import world #neox, world, racoon
 tokenizer = world
 
 context = '''
@@ -41,10 +42,11 @@ Please translate the next sentence into French.
 
 '''
 
-doGreedy = False
+doGreedy = True
+
 
 NUM_TRIALS = 1
-LENGTH_PER_TRIAL = 100
+LENGTH_PER_TRIAL = 1000
 
 TEMPERATURE = 0.9
 top_p = 0.9
@@ -86,21 +88,31 @@ for i in range(len(testdata[0])):
 # else:
 data = extract_column(dataset_name, split, column_name)
 
-batchsize = 100
-batches = 100
+batchsize = 3
+batches = 2
+instructions = []
+ctext = []
+translation = []
+
+dict = {'Instruction': instructions, 'Input': ctext, 'Response': translation}
+
 with open("output.txt", "w") as f:
     for step in range(0, batches*batchsize, batchsize):
         
         context_len_origin = [tokenizer.encode(context+data[i]+"\n### Response:\n").__len__() for i in range(step, step+batchsize)]
-
+        ctext = context
         # Example: Print the first 10 entries
         ctx = [tokenizer.encode(context+data[i]+"\n### Response:\n") for i in range(step, step+batchsize)]
+        fctx = [[]]*batchsize
         ##### extract data/
-
-
 
         src_len = len(ctx)
         src_ctx = ctx.copy()
+
+        ## add context to data
+        instructions = [context]*src_len
+        dict['Instruction'].extend(instructions)
+        dict['Input'].extend(data[step:step+batchsize])
 
         print("\nYour prompt has " + str(src_len) + " tokens.")
         print(
@@ -163,6 +175,9 @@ with open("output.txt", "w") as f:
                 if doGreedy:
                     toks = torch.argmax(out, dim=-1)
                     ctx = [ctx[o] + [toks[o].item()] for o in range(len(toks))]
+                    print(len(toks))
+                    print(fctx)
+                    fctx = [fctx[o] + [toks[o].item()] for o in range(len(toks))]
                 else:
                     ttt = sample_logits(
                         out, temperature=TEMPERATURE, top_p=top_p
@@ -174,9 +189,6 @@ with open("output.txt", "w") as f:
                 #     char = tokenizer.itos[ttt]
                 #     print(char, end="", flush=True)
                 # else:
-                char = tokenizer.decode(ctx[3][-1:])
-                if '\ufffd' not in char: # is valid utf8 string?
-                    print(char, end="", flush=True)
                     
 
             record_time('total')
@@ -187,16 +199,27 @@ with open("output.txt", "w") as f:
         for o in range(len(ctx)):
             for z in range(len(ctx[o])):
                 if ctx[o][z] == 0:
-                    ctx[o] = ctx[o][context_len_origin[o]:z]
+                    ctx[o] = ctx[o][o:z]
                     break
-
-        ctx = [tokenizer.decode(ctx[o]) for o in range(len(ctx))]
-        # append to file
-        f.write('\n'.join(ctx))
-
-
-        # write to file
+        for o in range(len(fctx)):
+            for z in range(len(fctx[o])):
+                if fctx[o][z] == 0:
+                    fctx[o] = fctx[o][:z]
+                    break
         
+        
+        
+        dict['Response'].extend([tokenizer.decode(fctx[o]) for o in range(len(fctx))])
+
+ctx = [tokenizer.decode(ctx[o]) for o in range(len(ctx))]
+# append to file
+stats = [[dict['Instruction'][i], dict['Input'][i], dict['Response'][i]] for i in range(len(dict['Instruction']))]
+df = pd.DataFrame(stats,
+        columns=['Instruction', 'Input', 'Response']
+        )
+print(df)
+df.to_csv('test.csv')
+        # f.write('\n'.join(ctx))
             
 
-    print(("-" * 50) + '\n')
+print(("-" * 50) + '\n')
