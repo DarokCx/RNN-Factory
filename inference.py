@@ -24,11 +24,12 @@ from src.samplers import sample_logits
 from src.models.modules.Linear import InferenceLinear
 
 from src.models import RWKV_v4, RWKV_v5, Experimental
+from src.models.modules.Linear import Quantized
 args = types.SimpleNamespace()
 args.linear = InferenceLinear
 args.load_model = '7B.pth'
 
-model = RWKV_v5(args).cuda()
+model = RWKV_v5(args).cpu()
 
 from src.tokenizer import world#neox, world, racoon
 tokenizer = world
@@ -40,7 +41,7 @@ Please translate the next sentence into French.
 
 '''
 
-doGreedy = True
+doGreedy = False
 
 NUM_TRIALS = 1
 LENGTH_PER_TRIAL = 100
