@@ -90,11 +90,13 @@ data = extract_column(dataset_name, split, column_name)
 
 batchsize = 100
 batches = 100
+15 * 100 * 1000
 instructions = []
 ctext = []
 translation = []
-
+newstate = model.newState(batchsize)
 dict = {'Instruction': instructions, 'Input': ctext, 'Response': translation}
+xxx= [model.new_state(1) for i in range(batchsize)]
 
 with open("output.txt", "w") as f:
     for step in range(0, batches*batchsize, batchsize):
@@ -153,14 +155,15 @@ with open("output.txt", "w") as f:
                 
 
                 if i == src_len:
-                    model.resetState()
-
-                    states = [model.forward([ctx[o]], model.new_state(1)) for o in range(len(ctx))]
+                    for io in range(batches):
+                        xxx[io][0][:] = 0
+                        xxx[io][1][:] = 0
+                    states = [model.forward([ctx[o]], xxx[o]) for o in range(len(ctx))]
                     # print(states.__len__())
                     # keys = states[0][1].keys()
                     # for key in keys:
                     #     states[0][1][key] = torch.cat([states[o][1][key] for o in range(len(ctx))], dim=0)
-                    newstate = model.newState(len(ctx))
+                    
                     for i in range(len(ctx)):
                         newstate[0][:,:,i] = states[i][1][0][:,:,0]
                         newstate[1][:,i] = states[i][1][1][:,0]
