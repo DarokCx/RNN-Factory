@@ -28,7 +28,7 @@ args = types.SimpleNamespace()
 args.linear = InferenceLinear
 args.load_model = '7B.pth'
 
-model = RWKV_v5(args).cpu()
+model = RWKV_v5(args).gpu()
 
 from src.tokenizer import world#neox, world, racoon
 tokenizer = world
