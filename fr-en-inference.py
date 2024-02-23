@@ -14,10 +14,10 @@ import pandas as pd
 ########################################################################################################
 
 
-dataset_name = 'Darok/Lamini-instructions-to-french'
+dataset_name = 'MBZUAI/LaMini-instruction'
 split = 'train'  # Choose the dataset split, e.g., 'train', 'test', etc.
 column_name = 'Response'  # Specify the column you want to extract
-output_file = 'en-ger.txt'
+output_file = 'en-ger'
 
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
 
@@ -88,15 +88,15 @@ for i in range(len(testdata[0])):
 # else:
 data = extract_column(dataset_name, split, column_name)
 
-batchsize = 10
-batches = 2
+batchsize = 100
+batches = 20
 instructions = []
 ctext = []
 translation = []
 
 dict = {'Instruction': instructions, 'Input': ctext, 'Response': translation}
 
-with open("en-ger.txt", "w") as f:
+with open(output_file + ".txt", "w") as f:
     for step in range(0, batches*batchsize, batchsize):
         
         context_len_origin = [tokenizer.encode(context+data[i]+"\n### Response:\n").__len__() for i in range(step, step+batchsize)]
@@ -218,7 +218,7 @@ df = pd.DataFrame(stats,
         columns=['Instruction', 'Input', 'Response']
         )
 # print(df)
-df.to_csv('test.csv')
+df.to_csv(output_file + ".csv")
         # f.write('\n'.join(ctx))
             
 
