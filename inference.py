@@ -156,7 +156,7 @@ with open("output.txt", "w") as f:
                     model.resetState()
 
                     states = [model.forward([ctx[o]], None) for o in range(len(ctx))]
-                    print(states.__len__())
+                    # print(states.__len__())
                     keys = states[0][1].keys()
                     for key in keys:
                         states[0][1][key] = torch.cat([states[o][1][key] for o in range(len(ctx))], dim=0)
@@ -175,8 +175,8 @@ with open("output.txt", "w") as f:
                 if doGreedy:
                     toks = torch.argmax(out, dim=-1)
                     ctx = [ctx[o] + [toks[o].item()] for o in range(len(toks))]
-                    print(len(toks))
-                    print(fctx)
+                    # print(len(toks))
+                    # print(fctx)
                     fctx = [fctx[o] + [toks[o].item()] for o in range(len(toks))]
                 else:
                     ttt = sample_logits(
@@ -217,7 +217,7 @@ stats = [[dict['Instruction'][i], dict['Input'][i], dict['Response'][i]] for i i
 df = pd.DataFrame(stats,
         columns=['Instruction', 'Input', 'Response']
         )
-print(df)
+# print(df)
 df.to_csv('test.csv')
         # f.write('\n'.join(ctx))
             
