@@ -166,6 +166,7 @@ class Experimental(LightningModel):
     def forward(self, idx, state):
         # if idx is list, make tensor
         if isinstance(idx, list):
+            # print(idx)
             idx = torch.tensor(idx)
         # if idx is int, make tensor
         if isinstance(idx, int):
