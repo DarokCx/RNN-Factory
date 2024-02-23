@@ -17,7 +17,7 @@ import pandas as pd
 dataset_name = 'MBZUAI/LaMini-instruction'
 split = 'train'  # Choose the dataset split, e.g., 'train', 'test', etc.
 column_name = 'response'  # Specify the column you want to extract
-output_file = 'en-it'
+output_file = 'en-fr'
 
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
 
@@ -37,7 +37,7 @@ tokenizer = world
 
 context = '''
 ### Instruction:
-Please translate the next sentence into Italian.
+Please translate the next sentence into French.
 ### Sentence:
 
 '''
