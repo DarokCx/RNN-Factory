@@ -63,7 +63,7 @@ class Model(nn.Module):
 
     def state_forward(self, *args, state=-1,flattenbatch=False, returnState=True, full_output=False, **kwargs):
         if state is None:
-            state={}
+            state=self.newState(args[0][0].__len__())
 
         if state == -1:
             inplace = True
@@ -71,6 +71,7 @@ class Model(nn.Module):
 
         else:
             inplace = False
+            
             
         logits, state = self._for(*args,state=state, **kwargs)
        
@@ -82,6 +83,9 @@ class Model(nn.Module):
             self.setState(state)
             return logits
         return logits, state
+    
+    def newState(self, B):
+        return {}
         
 
     

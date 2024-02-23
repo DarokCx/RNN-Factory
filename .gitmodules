@@ -1,0 +1,6 @@
+[submodule "rwkv.cuh"]
+	path = ./src/models/rwkv.cuh
+	url = git@github.com:harrisonvanderbyl/rwkv.cuh
+[submodule "src/models/rwkv.cuh"]
+	path = src/models/rwkv.cuh
+	url = git@github.com:harrisonvanderbyl/rwkv.cuh

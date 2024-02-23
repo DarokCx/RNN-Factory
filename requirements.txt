@@ -1,1 +1,10 @@
 py-cpuinfo
+pandas 
+tqdm 
+gradio 
+transformers 
+inquirer 
+ninja
+pynvml
+rwkv
+aiohttp

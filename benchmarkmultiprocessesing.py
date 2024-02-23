@@ -23,15 +23,19 @@ questions = [
             # choose between bfloat16/float32
             inquirer.List('precision',
                 message="Which precision do you want to use?",
-                choices=['bfloat16', 'float32'],
+                choices=['bfloat16', 'float32', 'uint8'],
             ),
             inquirer.List('size',
                 message="How big do you want the model to be?",
-                choices=['7B', '3B', '1.5B'],
+                choices=['14B','7B', '3B', '1.5B'],
             ),
             inquirer.List('type',
                 message="Which do you want to benchmark?",
                 choices=['Multiprocessing', 'State generation'],
+            ),
+            inquirer.List('stream increment',
+                message="How many streams do you want to increment by?",
+                choices=['8', '16', '32', '64', '128', '256'],
             ),
 ]
 
@@ -41,7 +45,7 @@ answers = inquirer.prompt(questions)
 # from src.models.modules.Linear import InferenceLinear, Quantized, Linear
 
 
-from src.models import RWKV_v4, RWKV_v5, Experimental
+from src.models import RWKV_v4, RWKV_v5, Experimental, v5cpp, v5simple
 args.linear = torch.nn.Linear
 
 
@@ -57,12 +61,25 @@ if answers['size'] == '7B':
     args.n_embd = 4096
     args.n_head = 64
 
+if answers['size'] == '14B':
+    args.n_layer = 48
+    args.n_embd = 5120
+    args.n_head = 80
+
 if answers['size'] == '1.5B':
     args.n_layer = 24
     args.n_embd = 2048
     args.n_head = 32
+    
+# if answers['precision'] == 'uint8':
+#     args.load_model="/home/harrison/CUDAMAX/Eagle7B_Q8.safetensors"
+#     model = v5cpp(args)
+# else:   
 
-model = RWKV_v5(args)
+#     model = RWKV_v5(args)
+znargs = types.SimpleNamespace()
+znargs.load_model = f"./1B5.pth"
+model = v5simple(znargs)
 # choose between cpu/gpu
 
 device = answers['device']
@@ -84,7 +101,7 @@ else:
 if device == 'cuda':
     model = model.cuda()
 
-
+print ("Memory use:", torch.cuda.memory_allocated() / 1024 ** 3, "GB")
 
 def init():
 
@@ -101,12 +118,19 @@ def runmodel(tokens, streams):
     
 
     toks = [tokeqs]*streams if answers['type'] == 'Multiprocessing' else [tokeqs * streams]
+    st = model.new_state(streams)
     
-    logits, state = model.forward(toks, state=None)
+    logits, state = model.forward(toks, state=st)
+    
+    newtokens = [[]]*streams if answers['type'] == 'Multiprocessing' else [[]]
+    #warmup
+    tokso = [torch.argmax(logits[j],dim=-1).item() for j in range(newtokens.__len__())]
+    newtokens = [newtokens[j] + [tokso[j]] for j in range(newtokens.__len__())]
+    logits, _ = model.forward(toks, state=state)
     
     timee = time.clock_gettime(0)
-    newtokens = [[]]*streams if answers['type'] == 'Multiprocessing' else [[]]
     import tqdm
+    
     for i in tqdm.tqdm(range(tokens)):
         tokso = [torch.argmax(logits[j],dim=-1).item() for j in range(newtokens.__len__())]
         newtokens = [newtokens[j] + [tokso[j]] for j in range(newtokens.__len__())]
@@ -125,7 +149,7 @@ def runmodel(tokens, streams):
     return otime2, tps
 
 samples = 11
-increase = 32
+increase = int(answers['stream increment'])
 granularity = 20
   
 from tqdm import tqdm
