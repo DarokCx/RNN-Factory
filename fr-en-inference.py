@@ -16,7 +16,7 @@ import pandas as pd
 
 dataset_name = 'Darok/Lamini-instructions-to-french'
 split = 'train'  # Choose the dataset split, e.g., 'train', 'test', etc.
-column_name = 'response'  # Specify the column you want to extract
+column_name = 'Response'  # Specify the column you want to extract
 output_file = 'en-ger.txt'
 
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
