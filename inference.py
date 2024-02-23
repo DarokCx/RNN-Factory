@@ -88,8 +88,8 @@ for i in range(len(testdata[0])):
 # else:
 data = extract_column(dataset_name, split, column_name)
 
-batchsize = 125
-batches = 1000
+batchsize = 100
+batches = 100
 instructions = []
 ctext = []
 translation = []
