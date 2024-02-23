@@ -85,7 +85,7 @@ for i in range(len(testdata[0])):
 # else:
 data = extract_column(dataset_name, split, column_name)
 
-batchsize = 70
+batchsize = 100
 batches = 100
 with open("output.txt", "w") as f:
     for step in range(0, batches*batchsize, batchsize):
