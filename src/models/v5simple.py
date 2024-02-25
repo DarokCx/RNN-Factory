@@ -6,6 +6,14 @@ import os
 currentdir = os.path.dirname(os.path.realpath(__file__))
 from .simple.model import RWKV
 
+from torch.ao.quantization import (
+  get_default_qconfig_mapping,
+  get_default_qat_qconfig_mapping,
+  QConfigMapping,
+)
+# import torch.ao.quantization.quantize_fx as quantize_fx
+# import torch_tensorrt
+
 class v5simple( Model):
     def __init__(self, args):
         self.model_name = 'v5-simple'
@@ -13,19 +21,32 @@ class v5simple( Model):
         super(v5simple, self).__init__()
         self.model = RWKV(load_model=args.load_model)
         self.model = self.model.eval()
-        self.model = self.model.bfloat16()
+        self.dtype = torch.bfloat16
+        self.model = self.model.to(self.dtype)
         self.layers = self.model.n_layer
         self.hidden = self.model.n_embd
         self.head_size = self.model.head_size
         self.heads = self.model.n_head
+        
+        self.eval()
+        self.requires_grad_(False)
+        self.device = torch.device("cpu")
         # self.model = torch.jit.script(self.model)
-    
-        self.model = torch.compile(self.model)
-        self.device = torch.device("cuda")
-        # 
+        
+        # from torch.quantization import quantize_dynamic
+        # self.model = quantize_dynamic(
+        #     model=self.model, qconfig_spec={torch.nn.Linear}, dtype=torch.qint8, inplace=False
+        # )
+        
+        # self.model = torch_tensorrt.compile(self.model, "default", (
+        #     torch.tensor([[1]]).cuda(),
+        #     *self.new_state(1)
+        # ))            
         self.model = self.model.to(self.device)
+        # self.model = torch.jit.script(self.model)
+        # 
         # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
-        # self.model = torch.jit.trace(self.model, (torch.tensor([[1]]).cuda(),*self.new_state(1)))
+        self.model = torch.jit.trace(self.model, (torch.tensor([[1]]).cuda(),*self.new_state(1)))
         
         
         
@@ -34,8 +55,6 @@ class v5simple( Model):
         
         self.cuda()
         
-        self.eval()
-        self.requires_grad_(False)
 
     def forward(self, idx, state=-1, **kwargs):
 
@@ -62,7 +81,7 @@ class v5simple( Model):
         
         # else:
             
-        idx = idx.to(self.device)
+        # idx = idx.to(self.device)
             
         # print(idx.device)
         # print(self.state[0].device)
@@ -70,7 +89,7 @@ class v5simple( Model):
         # print(self.model)
         # print(self.state[1].shape)
         # print(self.state.__len__())
-        output, outsstates, outwkvstates = self.model.forward(idx, self.state[0].to(self.device), self.state[1].to(self.device))
+        output, outsstates, outwkvstates = self.model.forward(idx, self.state[0].to(self.device, self.dtype), self.state[1].to(self.device, self.dtype))
     
         self.setState((outsstates, outwkvstates))
         
@@ -85,8 +104,8 @@ class v5simple( Model):
         
     def new_state(self, B):
         return (
-            torch.zeros(self.layers, 2, B, self.hidden, dtype=torch.bfloat16, device=self.device),
-            torch.zeros(self.layers, B,self.heads, self.head_size, self.head_size, dtype=torch.bfloat16, device=self.device)
+            torch.zeros(self.layers, 2, B, self.hidden, dtype=self.dtype, device=self.device),
+            torch.zeros(self.layers, B,self.heads, self.head_size, self.head_size, dtype=self.dtype, device=self.device)
         )
     
     def newState(self, B):
@@ -111,5 +130,11 @@ class v5simple( Model):
         
     def setState(self, state):
         self.state = state
+        
+    def half(self):
+        self.dtype = torch.float16
+        self.model = self.model.half()
+        self.state = (self.state[0].half(), self.state[1].half())
+        return self
     
         

@@ -7,7 +7,7 @@ import os
 
 
 # RWKV TimeMix module
-class RWKV_TimeMix(JITModClass):
+class RWKV_TimeMix(torch.nn.Module):
     #chunk_len:int = 128, precision:int = 64
     def __init__(self, layer_id, n_layer, n_embd, n_head, head_size, dim_att, chunk_len:int = 1, precision:int = 64):
         super().__init__()
