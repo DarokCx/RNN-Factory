@@ -8,7 +8,7 @@ from .CoreDependencies import *
 
 @TCompileBaseline
 def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor,Tensor]:
-
+    assert(chunk_len <= 24 or precision == 64)
     """
     expects
     r : (B,H,L,K)
@@ -25,7 +25,7 @@ def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor
     
     # FIXME - support fast path for non-exact multiples
     # ensure it's an exact multiple
-    # assert L%T == 0, "fast non-cuda rwkv5.2+ requires ctxlen to be an exact multiple of chunk_len"
+    assert L%T == 0, "fast non-cuda rwkv5.2+ requires ctxlen to be an exact multiple of chunk_len"
 
     N = L // T
 
@@ -33,7 +33,10 @@ def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor
     # NOTE - this does not account for the impact of the size of R, K so we currently use the chunk_len=32 numbers for chunk_len=24
     assert(precision == 32 or precision == 64)
     precision_min_val = 0.005 # good for fp32 (1.175e-38 ^ (1/16.0) < 0.00426)
-    precision_dtype = torch.float64
+    if precision == 32:
+        precision_dtype = torch.float32
+    else: #elif precision_dtype == torch.float64:
+        precision_dtype = torch.float64
     w = w.clamp(precision_min_val)
 
     # calculate cumulative decay in log space where it won't overflow
@@ -82,7 +85,10 @@ def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor
     k_inv_decay = (wc_log_offset - wc_log_cum).to(precision_dtype).exp() # B,H,N,T,K
     a = ((r*r_decay) @ (k*k_inv_decay).mT).to(r.dtype).tril(-1) # B,H,N,T,T
     # add u term to attention (NOTE - the tril(-1) above zeroed the diagonal)
-    a = a + torch.einsum('bhntk,bhntk->bhnt', r, u * k).diag_embed()
+    nv = torch.einsum('bhntk,bhntk->bhnt', r, u * k)
+    # a = a + nv 
+    for i in range(a.size(-1)):
+        a[...,i,i] += nv[...,i]
     out = a @ v # BHNTV
     # alternate way of adding in u
     # out = out + torch.einsum('bhntk,bhntk,bhntv->bhntv', r, u * k, v) 
