@@ -47,7 +47,7 @@ class v5simple( Model):
         # self.model = torch.jit.script(self.model)
         # 
         # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
-        self.model = torch_neuronx.trace(self.model, (torch.tensor([[1],[1],[1],[1],[1],[1],[1],[1]]),*self.new_state(8)))
+        self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*32),*self.new_state(32)))
         self.model = torch_neuronx.dynamic_batch(self.model)
         
         
