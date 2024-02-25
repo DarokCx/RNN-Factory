@@ -8,7 +8,7 @@ from .CoreDependencies import *
 
 @TCompileBaseline
 def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor,Tensor]:
-    assert(chunk_len <= 24 or precision == 64)
+
     """
     expects
     r : (B,H,L,K)
@@ -25,7 +25,7 @@ def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor
     
     # FIXME - support fast path for non-exact multiples
     # ensure it's an exact multiple
-    assert L%T == 0, "fast non-cuda rwkv5.2+ requires ctxlen to be an exact multiple of chunk_len"
+    # assert L%T == 0, "fast non-cuda rwkv5.2+ requires ctxlen to be an exact multiple of chunk_len"
 
     N = L // T
 
@@ -33,10 +33,7 @@ def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor
     # NOTE - this does not account for the impact of the size of R, K so we currently use the chunk_len=32 numbers for chunk_len=24
     assert(precision == 32 or precision == 64)
     precision_min_val = 0.005 # good for fp32 (1.175e-38 ^ (1/16.0) < 0.00426)
-    if precision == 32:
-        precision_dtype = torch.float32
-    else: #elif precision_dtype == torch.float64:
-        precision_dtype = torch.float64
+    precision_dtype = torch.float64
     w = w.clamp(precision_min_val)
 
     # calculate cumulative decay in log space where it won't overflow
