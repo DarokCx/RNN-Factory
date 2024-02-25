@@ -53,7 +53,6 @@ class v5simple( Model):
         
         self.setState(self.new_state(1))
         
-        self.cuda()
         
 
     def forward(self, idx, state=-1, **kwargs):
