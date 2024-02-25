@@ -105,8 +105,8 @@ class v5simple( Model):
         
     def new_state(self, B):
         return (
-            torch.zeros(self.layers, 2, B, self.hidden, dtype=self.dtype, device=self.device),
-            torch.zeros(self.layers, B,self.heads, self.head_size, self.head_size, dtype=self.dtype, device=self.device)
+            torch.zeros(B,self.layers, 2, self.hidden, dtype=self.dtype, device=self.device),
+            torch.zeros(B,self.layers,self.heads, self.head_size, self.head_size, dtype=self.dtype, device=self.device)
         )
     
     def newState(self, B):

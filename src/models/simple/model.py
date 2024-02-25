@@ -236,7 +236,7 @@ class RWKV(nn.Module):
 
         for i,b in enumerate(self.blocks):
             # print("last_state", cur_bs_list.shift_states.)
-            x, last_shift_states[i,0],last_shift_states[i,1], last_wkv_states[i]  = b(x, last_shift_states[i,0],last_shift_states[i,1], last_wkv_states[i])
+            x, last_shift_states[:,i,0],last_shift_states[:,i,1], last_wkv_states[:,i]  = b(x, last_shift_states[:,i,0],last_shift_states[:,i,1], last_wkv_states[:,i])
            
 
 
