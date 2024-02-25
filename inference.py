@@ -14,9 +14,10 @@ import pandas as pd
 ########################################################################################################
 
 
-dataset_name = 'MBZUAI/LaMini-instruction'
+dataset_name = 'HuggingFaceTB/cosmopedia'
 split = 'train'  # Choose the dataset split, e.g., 'train', 'test', etc.
-column_name = 'response'  # Specify the column you want to extract
+column_name = 'text'  # Specify the column you want to extract
+Config = 'wikihow'
 
 
 # MODEL_NAME = '/home/harrison/Documents/RNN-Factory/src/training/pipeline/models/5.pth'
@@ -27,7 +28,7 @@ from src.models.modules.Linear import InferenceLinear
 from src.models import RWKV_v4, RWKV_v5, Experimental, v5simple
 args = types.SimpleNamespace()
 # args.linear = InferenceLinear
-args.load_model = '1B5.pth'
+args.load_model = 'rwkv.pth'
 
 model = v5simple(args).cuda()
 
@@ -86,7 +87,7 @@ for i in range(len(testdata[0])):
 #     context = tokenizer.refine_context(context)
 #     ctx = [tokenizer.stoi.get(s, tokenizer.UNKNOWN_CHAR) for s in context]
 # else:
-data = extract_column(dataset_name, split, column_name)
+data = extract_column(dataset_name, split, column_name, Config)
 
 batchsize = 100
 batches = 100

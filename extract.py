@@ -11,8 +11,8 @@ from datasets import load_dataset
 #         extracted_data.append(value)
 
 #     return extracted_data
-def extract_column(dataset_name, split, column_name):
-    dataset = load_dataset(dataset_name)
+def extract_column(dataset_name, split, column_name, config):
+    dataset = load_dataset(dataset_name, config)
     extracted_data = []
     for row in dataset[split]:
         value = row[column_name]
