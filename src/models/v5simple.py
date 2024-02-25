@@ -11,6 +11,7 @@ from torch.ao.quantization import (
   get_default_qat_qconfig_mapping,
   QConfigMapping,
 )
+import torch_neuronx
 # import torch.ao.quantization.quantize_fx as quantize_fx
 # import torch_tensorrt
 
@@ -46,7 +47,7 @@ class v5simple( Model):
         # self.model = torch.jit.script(self.model)
         # 
         # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
-        self.model = torch.jit.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)))
+        self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)))
         
         
         
