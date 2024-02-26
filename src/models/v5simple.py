@@ -5,7 +5,7 @@ import torch
 import os
 currentdir = os.path.dirname(os.path.realpath(__file__))
 from .simple.model import RWKV
-
+import json
 from torch.ao.quantization import (
   get_default_qconfig_mapping,
   get_default_qat_qconfig_mapping,
@@ -53,7 +53,7 @@ class v5simple( Model):
             # save the compiled model
             torch.jit.save(self.model, args.load_model+ ".comp")
             # save settings as json
-            import json
+            
             with open(args.load_model+ ".comp.json", "w") as f:
                 json.dump({
                     "layers": self.layers,
