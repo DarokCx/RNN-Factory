@@ -49,7 +49,8 @@ class v5simple( Model):
             # self.model = torch.jit.script(self.model)
             # 
             # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
-            self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)))
+            batch = 4
+            self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batch),*self.new_state(batch)))
             # save the compiled model
             torch.jit.save(self.model, args.load_model+ ".comp")
             # save settings as json
