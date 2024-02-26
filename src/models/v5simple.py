@@ -72,6 +72,7 @@ class v5simple( Model):
             
         
         # self.model = torch_neuronx.dynamic_batch(self.model)
+        self.model = torch_neuronx.DataParallel(self.model)
         
         
         self.eval()
