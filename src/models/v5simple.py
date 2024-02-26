@@ -71,7 +71,7 @@ class v5simple( Model):
                 self.head_size = data["head_size"]
             
         
-        self.model = torch_neuronx.dynamic_batch(self.model)
+        # self.model = torch_neuronx.dynamic_batch(self.model)
         
         
         self.eval()
