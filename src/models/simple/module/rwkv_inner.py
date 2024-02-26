@@ -85,10 +85,10 @@ def rwkv_inner(r,k,v,w,u,kv_state,chunk_len:int=1,precision:int=1)->tuple[Tensor
     k_inv_decay = (wc_log_offset - wc_log_cum).to(precision_dtype).exp() # B,H,N,T,K
     a = ((r*r_decay) @ (k*k_inv_decay).mT).to(r.dtype).tril(-1) # B,H,N,T,T
     # add u term to attention (NOTE - the tril(-1) above zeroed the diagonal)
-    nv = torch.einsum('bhntk,bhntk->bhnt', r, u * k)
+    # nv = torch.einsum('bhntk,bhntk->bhnt', r, u * k)
     # a = a + nv 
-    for i in range(a.size(-1)):
-        a[...,i,i] += nv[...,i]
+    # for i in range(a.size(-1)):
+    #     a[...,i,i] += nv[...,i]
     out = a @ v # BHNTV
     # alternate way of adding in u
     # out = out + torch.einsum('bhntk,bhntk,bhntv->bhntv', r, u * k, v) 
