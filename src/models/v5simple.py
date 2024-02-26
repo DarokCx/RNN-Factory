@@ -20,38 +20,62 @@ class v5simple( Model):
         self.model_name = 'v5-simple'
         
         super(v5simple, self).__init__()
-        self.model = RWKV(load_model=args.load_model)
-        self.model = self.model.eval()
-        self.dtype = torch.bfloat16
-        self.model = self.model.to(self.dtype)
-        self.layers = self.model.n_layer
-        self.hidden = self.model.n_embd
-        self.head_size = self.model.head_size
-        self.heads = self.model.n_head
-        
-        self.eval()
-        self.requires_grad_(False)
         self.device = torch.device("cpu")
-        # self.model = torch.jit.script(self.model)
+        self.dtype = torch.bfloat16
         
-        # from torch.quantization import quantize_dynamic
-        # self.model = quantize_dynamic(
-        #     model=self.model, qconfig_spec={torch.nn.Linear}, dtype=torch.qint8, inplace=False
-        # )
+        # check existence of args.load_model+ ".comp"
+        if not os.path.exists(args.load_model+ ".comp"):
+            self.model = RWKV(load_model=args.load_model)
+            self.model = self.model.eval()
+            self.model = self.model.to(self.dtype)
+            self.layers = self.model.n_layer
+            self.hidden = self.model.n_embd
+            self.head_size = self.model.head_size
+            self.heads = self.model.n_head
+            
         
-        # self.model = torch_tensorrt.compile(self.model, "default", (
-        #     torch.tensor([[1]]).cuda(),
-        #     *self.new_state(1)
-        # ))            
-        self.model = self.model.to(self.device)
-        # self.model = torch.jit.script(self.model)
-        # 
-        # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
-        self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*8),*self.new_state(8)))
+            # self.model = torch.jit.script(self.model)
+            
+            # from torch.quantization import quantize_dynamic
+            # self.model = quantize_dynamic(
+            #     model=self.model, qconfig_spec={torch.nn.Linear}, dtype=torch.qint8, inplace=False
+            # )
+            
+            # self.model = torch_tensorrt.compile(self.model, "default", (
+            #     torch.tensor([[1]]).cuda(),
+            #     *self.new_state(1)
+            # ))            
+            self.model = self.model.to(self.device)
+            # self.model = torch.jit.script(self.model)
+            # 
+            # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
+            self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*8),*self.new_state(8)))
+            # save the compiled model
+            torch.jit.save(self.model, args.load_model+ ".comp")
+            # save settings as json
+            import json
+            with open(args.load_model+ ".comp.json", "w") as f:
+                json.dump({
+                    "layers": self.layers,
+                    "hidden": self.hidden,
+                    "heads": self.heads,
+                    "head_size": self.head_size
+                }, f)
+        else:
+            self.model = torch.jit.load(args.load_model+ ".comp")
+            with open(args.load_model+ ".comp.json", "r") as f:
+                data = json.load(f)
+                self.layers = data["layers"]
+                self.hidden = data["hidden"]
+                self.heads = data["heads"]
+                self.head_size = data["head_size"]
+            
+        
         self.model = torch_neuronx.dynamic_batch(self.model)
         
         
-        
+        self.eval()
+        self.requires_grad_(False)
         
         self.setState(self.new_state(1))
         
