@@ -3,19 +3,19 @@ from .CoreDependencies import *
 from .OptimizedOps import modified_lerp
 from .rwkv_inner import rwkv_inner
 import os
-try:
-    import torch_neuronx
-    from torch_neuronx.xla_impl import custom_op
+# try:
+import torch_neuronx
+from torch_neuronx.xla_impl import custom_op
 
-    custom_op.load(
-        name="wkv5",
-        compute_srcs=['./src/models/simple/module/justaws.cpp'],
-        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-        multicore=False
-    )
-except:
-    from torch.utils.cpp_extension import load
-    wkv5_cuda = load(name="wkv5", sources=["./src/models/simple/module/customawsoperator.cpp"],
+custom_op.load(
+    name="wkv5",
+    compute_srcs=['./src/models/simple/module/justaws.cpp'],
+    shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+    multicore=False
+)
+# except:
+#     from torch.utils.cpp_extension import load
+#     wkv5_cuda = load(name="wkv5", sources=["./src/models/simple/module/customawsoperator.cpp"],
                                 verbose=True, extra_cflags=["-O3", "-march=native", "-fPIC"])
 
 
