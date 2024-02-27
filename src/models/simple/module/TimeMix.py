@@ -3,7 +3,20 @@ from .CoreDependencies import *
 from .OptimizedOps import modified_lerp
 from .rwkv_inner import rwkv_inner
 import os
+try:
+    import torch_neuronx
+    from torch_neuronx.xla_impl import custom_op
 
+    custom_op.load(
+        name="wkv5",
+        compute_srcs=['./src/models/simple/module/justaws.cpp'],
+        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+        multicore=False
+    )
+except:
+    from torch.utils.cpp_extension import load
+    wkv5_cuda = load(name="wkv5", sources=["./src/models/simple/module/customawsoperator.cpp"],
+                                verbose=True, extra_cflags=["-O3", "-march=native", "-fPIC", "-H"])
 
 
 # RWKV TimeMix module
@@ -63,7 +76,8 @@ class RWKV_TimeMix(torch.nn.Module):
         self.precision = precision
         
         self.silu = nn.SiLU()
-
+        
+        
 
     def forward(self, x, last_state_shift, last_state_wkv):
         shift_state_out = x[:,-1]
@@ -85,20 +99,26 @@ class RWKV_TimeMix(torch.nn.Module):
         xr = modified_lerp(x, self.time_mix_r, xx)
         xg = modified_lerp(x, self.time_mix_g, xx)
 
-        r = self.receptance(xr).view(B, T, H, K).transpose(1, 2) # BHTK
-        k = self.key(xk).view(B, T, H, K).transpose(1, 2)      # BHTK
-        v = self.value(xv).view(B, T, H, V).transpose(1, 2)    # BHTV
+        r = self.receptance(xr).reshape(B,T,H,-1) # BHTK
+        k = self.key(xk) .reshape(B,T,H,-1)     # BHTK
+        v = self.value(xv) .reshape(B,T,H,-1)   # BHTV
         g = self.silu(self.gate(xg))
 
-        w = torch.exp(-torch.exp(self.time_decay.float())).view(1,H,1,K).expand(1,H,T,K)
+        w = torch.exp(-torch.exp(self.time_decay.float())).view(H,-1)
 
-        u = self.time_faaaa.view(1,H,1,K).to(r.dtype)
+        u = self.time_faaaa.float().view(H,-1)
 
         # Logits and state
-        wkv_state = last_state_wkv.to(r.dtype)
+        wkv_state = last_state_wkv.float()
 
-        x_logits, wkv_state = rwkv_inner(r, k, v, w, u, wkv_state, T, self.precision) 
-        x_logits = x_logits.transpose(1,2).reshape(B,T,C)
+        
+        rm = r.contiguous()
+        km = k.contiguous()
+        vm = v.contiguous()
+        
+        out = wkv5_cuda.forward_cpu(B,T,C,H, wkv_state, rm.float(), km.float(), vm.float(), w, u)
+                    
+        x_logits =  out[:,:,:T].contiguous().transpose(1,2).reshape(B, T, C).bfloat16()
 
         # Reshape and normalize the logits
         x_logits = x_logits.view(-1, C)
@@ -106,7 +126,7 @@ class RWKV_TimeMix(torch.nn.Module):
         x_logits = self.output(x_logits * g)
 
         # Return the logits and the state
-        return (x_logits, shift_state_out,wkv_state)
+        return (x_logits, shift_state_out, out[:,:,T:].contiguous())
     
 
 def compute_wkv_state(
