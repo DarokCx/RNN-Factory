@@ -16,7 +16,7 @@ custom_op.load(
 # except:
 #     from torch.utils.cpp_extension import load
 #     wkv5_cuda = load(name="wkv5", sources=["./src/models/simple/module/customawsoperator.cpp"],
-                                verbose=True, extra_cflags=["-O3", "-march=native", "-fPIC"])
+                                # verbose=True, extra_cflags=["-O3", "-march=native", "-fPIC"])
 
 
 # RWKV TimeMix module
