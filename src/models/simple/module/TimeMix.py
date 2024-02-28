@@ -112,60 +112,65 @@ class RWKV_TimeMix(torch.nn.Module):
         xr = modified_lerp(x, self.time_mix_r, xx)
         xg = modified_lerp(x, self.time_mix_g, xx)
 
-        r = self.receptance(xr).reshape(B,T,H,-1) # BHTK
-        k = self.key(xk) .reshape(B,T,H,-1)     # BHTK
-        v = self.value(xv) .reshape(B,T,H,-1)   # BHTV
+        r = self.receptance(xr).view(B,T,H,-1) # BHTK
+        k = self.key(xk) .view(B,T,H,-1)     # BHTK
+        v = self.value(xv) .view(B,T,H,-1)   # BHTV
         g = self.silu(self.gate(xg))
 
-        w = torch.exp(-torch.exp(self.time_decay.float())).view(H,-1).contiguous()
+        w = torch.exp(-torch.exp(self.time_decay.float())).view(H,-1)
 
-        u = self.time_faaaa.float().view(H,-1).contiguous()
+        u = self.time_faaaa.float().view(H,-1)
 
         # Logits and state
-        wkv_state = last_state_wkv.float().reshape(B,H,K,V).contiguous()
+        wkv_state = last_state_wkv.float().view(B,H,K,V)
+        
+        out = torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
+        
+        for t in range(T):
+            for bb in range(B):
+
+                for hh in range(H):
+
+
+                    for i in range(K):
+
+                        
+                        kkk = k[bb,t,hh,i] 
+                        uuu = u[hh,i]
+                        rrr = r[bb,t,hh,i]
+                        www = w[hh,i]
+
+
+                        vvv = v[bb,t,hh]
+
+                        atu = vvv * kkk
+
+                        sss = wkv_state[bb,hh,i]
+
+                        sssatuuuu = ((atu*uuu)+sss)
+
+                        out[bb,t,hh] = out[bb,t,hh] + (sssatuuuu*rrr)
+
+                        wkv_state[bb,hh][i] = ((sss*www)+atu)
+                        
+                        
 
         
-        rm = r.contiguous()
-        km = k.contiguous()
-        vm = v.contiguous()
+        # rm = r.contiguous()
+        # km = k.contiguous()
+        # vm = v.contiguous()
         
-        out = wkv5.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
+        # out = wkv5.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
                     
-        x_logits =  out[:,:,:T].contiguous().transpose(1,2).reshape(B, T, C).bfloat16()
+        x_logits =  out.reshape(B, T, C)
 
         # Reshape and normalize the logits
         x_logits = self.ln_x(x_logits).view(B, T, C)
         x_logits = self.output(x_logits * g)
 
         # Return the logits and the state
-        return (x_logits, shift_state_out, out[:,:,T:].contiguous())
+        return (x_logits, shift_state_out, wkv_state)
     
-
-def compute_wkv_state(
-        k, v, r,
-        time_faaaa: torch.nn.Parameter,
-        time_decay: torch.nn.Parameter,
-        wkv_state, 
-        n_head:int, head_size:int,
-        B:int, TT:int
-    ):
-    # Compute attent and the initial output tensor
-    at = k @ v
-    u = time_faaaa.view(1,1,n_head, 1, -1)
-
-    # Slightly inefficent, but it works, lets compute all the tokens
-    w = time_decay.exp().neg().exp().reshape(1, n_head,-1,1)
-
-    out = (u * r) @ at
-    for t in range(TT):
-        out[:,t] += r[:,t] @ wkv_state
-        
-        # We make a clone copy, so the previous object backprop state is tracked seperately
-        wkv_state = wkv_state.clone()
-        wkv_state *= w
-        wkv_state += at[:,t]
-
-    return wkv_state, out
 
 
 # @TCompileMax

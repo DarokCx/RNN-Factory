@@ -44,21 +44,22 @@ class v5simple( Model):
                 pass 
             
             if isinfrenciam:
-                from torch_neuronx.xla_impl import custom_op
-                custom_op.load(
-                        name="wkv5",
-                        compute_srcs=['./src/models/simple/module/justaws.cpp'],
-                        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-                        multicore=False,
-                        verbose=True,
-                    )  
+                # from torch_neuronx.xla_impl import custom_op
+                # custom_op.load(
+                #         name="wkv5",
+                #         compute_srcs=['./src/models/simple/module/justaws.cpp'],
+                #         shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+                #         multicore=False,
+                #         verbose=True,
+                #     )  
                 
                 self.model = torch_neuronx.trace(self.model, (torch.tensor([[1],[1]]),*self.new_state(2)),
                                                     compiler_args=['-O1'],
                                                     )
                 torch.jit.save(self.model, args.load_model+ ".comp")
             
-           
+            else:
+                self.model = torch.jit.script(self.model)
             
             # from torch.quantization import quantize_dynamic
             # self.model = quantize_dynamic(
@@ -139,6 +140,7 @@ class v5simple( Model):
         # print(self.model)
         # print(self.state[1].shape)
         # print(self.state.__len__())
+        
         output, outsstates, outwkvstates = self.model.forward(idx, self.state[0].to(self.device, self.dtype), self.state[1].to(self.device, self.dtype))
     
         self.setState((outsstates, outwkvstates))
