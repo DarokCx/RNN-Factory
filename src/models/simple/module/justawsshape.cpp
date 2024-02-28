@@ -1,11 +1,8 @@
-#include <torch/extension.h>
-#include "ATen/ATen.h"
-
+#include <stdint.h>
+#include <stdlib.h>
+#include <torch/torch.h>
 #include "torchneuron/register.h"
 
-typedef at::BFloat16 bf16;
-typedef at::Half fp16;
-typedef float fp32;
 
 
 

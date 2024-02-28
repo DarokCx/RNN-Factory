@@ -1,7 +1,6 @@
-#include <torch/extension.h>
-#include "ATen/ATen.h"
-
-
+#include <stdint.h>
+#include <stdlib.h>
+#include <torch/torch.h>
 
 torch::Tensor forward_cpu_compute(int64_t B, int64_t T, int64_t C, int64_t H, torch::Tensor &s, torch::Tensor &r, torch::Tensor &k, torch::Tensor &v, torch::Tensor &w, torch::Tensor &u) {
     
