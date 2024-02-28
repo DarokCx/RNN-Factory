@@ -35,25 +35,23 @@ class v5simple( Model):
             self.head_size = self.model.head_size
             self.heads = self.model.n_head
             
-            try:
-                
-                from torch_neuronx.xla_impl import custom_op
-                custom_op.load(
-                        name="wkv5",
-                        compute_srcs=['./src/models/simple/module/justaws.cpp'],
-                        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-                        multicore=False,
-                        verbose=True,
-                    )  
-                
-                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)),
-                                                 compiler_args=['O1'],
-                                                 )
-                torch.jit.save(self.model, args.load_model+ ".comp")
             
-            except:
-                # self.model = torch.jit.script(self.model)
-                pass
+            
+            from torch_neuronx.xla_impl import custom_op
+            custom_op.load(
+                    name="wkv5",
+                    compute_srcs=['./src/models/simple/module/justaws.cpp'],
+                    shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+                    multicore=False,
+                    verbose=True,
+                )  
+            
+            self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)),
+                                                compiler_args=['O1'],
+                                                )
+            torch.jit.save(self.model, args.load_model+ ".comp")
+            
+           
             
             # from torch.quantization import quantize_dynamic
             # self.model = quantize_dynamic(
