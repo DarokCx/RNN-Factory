@@ -117,7 +117,7 @@ class RWKV_TimeMix(torch.nn.Module):
         km = k.contiguous()
         vm = v.contiguous()
         
-        out = torch.ops.wkv5.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
+        out = torch.ops.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
                     
         x_logits =  out[:,:,:T].contiguous().transpose(1,2).reshape(B, T, C).bfloat16()
 
