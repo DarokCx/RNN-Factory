@@ -109,12 +109,12 @@ class RWKV_TimeMix(torch.nn.Module):
         v = self.value(xv) .reshape(B,T,H,-1)   # BHTV
         g = self.silu(self.gate(xg))
 
-        w = torch.exp(-torch.exp(self.time_decay.float())).view(H,-1)
+        w = torch.exp(-torch.exp(self.time_decay.float())).view(H,-1).contiguous()
 
-        u = self.time_faaaa.float().view(H,-1)
+        u = self.time_faaaa.float().view(H,-1).contiguous()
 
         # Logits and state
-        wkv_state = last_state_wkv.float().reshape(B,H,K,V)
+        wkv_state = last_state_wkv.float().reshape(B,H,K,V).contiguous()
 
         
         rm = r.contiguous()
