@@ -11,7 +11,8 @@ custom_op.load(
     name="wkv5",
     compute_srcs=['./src/models/simple/module/justaws.cpp'],
     shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-    multicore=False
+    multicore=False,
+    verbose=True,
 )
 # except:
 #     from torch.utils.cpp_extension import load
