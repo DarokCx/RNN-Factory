@@ -117,9 +117,9 @@ class RWKV_TimeMix(torch.nn.Module):
         v = self.value(xv) .view(B,T,H,-1)   # BHTV
         g = self.silu(self.gate(xg))
 
-        w = torch.exp(-torch.exp(self.time_decay.float())).view(H,-1)
+        w = torch.exp(-torch.exp(self.time_decay.float())).view(1,1,H,-1)
 
-        u = self.time_faaaa.float().view(H,-1)
+        u = self.time_faaaa.float().view(1,1,H,-1)
 
         # Logits and state
         wkv_state = last_state_wkv.float().view(B,H,K,V)
@@ -127,31 +127,29 @@ class RWKV_TimeMix(torch.nn.Module):
         out = torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
         
         for t in range(T):
-            for bb in range(B):
 
-                for hh in range(H):
+                for i in range(K):
 
-
-                    for i in range(K):
-
-                        
-                        kkk = k[bb,t,hh,i] 
-                        uuu = u[hh,i]
-                        rrr = r[bb,t,hh,i]
-                        www = w[hh,i]
+                    
+                    kkk = k[:,t,:,i:i+1] 
+                    uuu = u[:,:,:,i:i+1]
+                    rrr = r[:,t,:,i:i+1]
+                    www = w[:,:,:,i:i+1]
 
 
-                        vvv = v[bb,t,hh]
+                    vvv = v[:,t,:]
+                    
+                    atu = vvv * kkk
 
-                        atu = vvv * kkk
+                    sss = wkv_state[:,:,i]
 
-                        sss = wkv_state[bb,hh,i]
+                    sssatuuuu = ((atu*uuu)+sss)
+                    
+                    
 
-                        sssatuuuu = ((atu*uuu)+sss)
+                    out[:,t,:] += (sssatuuuu*rrr).view(B,H,V)
 
-                        out[bb,t,hh] = out[bb,t,hh] + (sssatuuuu*rrr)
-
-                        wkv_state[bb,hh][i] = ((sss*www)+atu)
+                    wkv_state[:,:,i] = ((sss*www)+atu).view(B,H,V)
                         
                         
 
