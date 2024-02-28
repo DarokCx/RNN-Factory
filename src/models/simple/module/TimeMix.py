@@ -112,7 +112,7 @@ class RWKV_TimeMix(torch.nn.Module):
         u = self.time_faaaa.float().view(H,-1)
 
         # Logits and state
-        wkv_state = last_state_wkv.float()
+        wkv_state = last_state_wkv.float().reshape(B,H,K,V)
 
         
         rm = r.contiguous()
