@@ -14,9 +14,9 @@ torch::Tensor forward_cpu(const torch::Tensor &s, const torch::Tensor &r, const 
     int64_t B = r.size(0);
     int64_t T = r.size(1);
     int64_t H = w.size(0);
-    int64_t C = w.size(1)*H;
+    int64_t Z = w.size(1);
     
-    auto y = torch::zeros({B, H, T + (C/H), C/H}, torch::kFloat);
+    auto y = torch::zeros({B, H, T + (Z), Z}, torch::kFloat);
 
     auto out = y.accessor<float, 4>();
 
@@ -30,7 +30,7 @@ torch::Tensor forward_cpu(const torch::Tensor &s, const torch::Tensor &r, const 
             for (int64_t hh = 0; hh < H; hh++) {
 
 
-                for (int64_t i = 0; i < C/H; i++) {
+                for (int64_t i = 0; i < Z; i++) {
 
                     
                     auto kkk = kk[bb][t][hh][i];  
@@ -38,7 +38,7 @@ torch::Tensor forward_cpu(const torch::Tensor &s, const torch::Tensor &r, const 
                     auto rrr = rr[bb][t][hh][i];
                     auto www = ww[hh][i];
 
-                    for(int64_t j = 0; j < C/H; j++){
+                    for(int64_t j = 0; j < Z; j++){
 
                     auto vvv = vv[bb][t][hh][j];
 
