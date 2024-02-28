@@ -4,18 +4,7 @@ from .OptimizedOps import modified_lerp
 from .rwkv_inner import rwkv_inner
 import os
 try:
-    import torch_neuronx
-
-    from torch_neuronx.xla_impl import custom_op
-
-
-    custom_op.load(
-        name="wkv5",
-        compute_srcs=['./src/models/simple/module/justaws.cpp'],
-        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-        multicore=False,
-        verbose=True,
-    )
+    import torch_neuronx      
     
     wkv5 = torch.ops.my_ops
 except:
@@ -145,7 +134,6 @@ class RWKV_TimeMix(torch.nn.Module):
         x_logits =  out[:,:,:T].contiguous().transpose(1,2).reshape(B, T, C).bfloat16()
 
         # Reshape and normalize the logits
-        x_logits = x_logits.view(-1, C)
         x_logits = self.ln_x(x_logits).view(B, T, C)
         x_logits = self.output(x_logits * g)
 

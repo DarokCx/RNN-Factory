@@ -11,7 +11,7 @@ from torch.ao.quantization import (
   get_default_qat_qconfig_mapping,
   QConfigMapping,
 )
-import torch_neuronx
+# import torch_neuronx
 # import torch.ao.quantization.quantize_fx as quantize_fx
 # import torch_tensorrt
 
@@ -25,7 +25,9 @@ class v5simple( Model):
         
         # check existence of args.load_model+ ".comp"
         if not os.path.exists(args.load_model+ ".comp"):
+            
             self.model = RWKV(load_model=args.load_model)
+            self.model = self.model.to(self.device)
             self.model = self.model.eval()
             self.model = self.model.to(self.dtype)
             self.layers = self.model.n_layer
@@ -33,8 +35,26 @@ class v5simple( Model):
             self.head_size = self.model.head_size
             self.heads = self.model.n_head
             
-        
-            # self.model = torch.jit.script(self.model)
+            try:
+                
+                from torch_neuronx.xla_impl import custom_op
+                custom_op.load(
+                        name="wkv5",
+                        compute_srcs=['./src/models/simple/module/justaws.cpp'],
+                        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+                        multicore=False,
+                        verbose=True,
+                    )  
+                
+                batch = 1
+                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batch),*self.new_state(batch)),inline_weights_to_neff=False,
+                                                 compiler_args=['-O1'],
+                                                 )
+                torch.jit.save(self.model, args.load_model+ ".comp")
+            
+            except:
+                # self.model = torch.jit.script(self.model)
+                pass
             
             # from torch.quantization import quantize_dynamic
             # self.model = quantize_dynamic(
@@ -45,16 +65,13 @@ class v5simple( Model):
             #     torch.tensor([[1]]).cuda(),
             #     *self.new_state(1)
             # ))            
-            self.model = self.model.to(self.device)
             # self.model = torch.jit.script(self.model)
             # 
             # self.cpum = RWKV(load_model=args.load_model).cpu().bfloat16().eval()
-            batch = 1
-            self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batch),*self.new_state(batch)),inline_weights_to_neff=False,
-                                             compiler_args=['-O1'],
-                                             )
+                
+            # self.model = torch.jit.trace(self.model, (torch.tensor([[1]]*batch),*self.new_state(batch)))
             # save the compiled model
-            torch.jit.save(self.model, args.load_model+ ".comp")
+            
             # save settings as json
             
             with open(args.load_model+ ".comp.json", "w") as f:
@@ -75,7 +92,7 @@ class v5simple( Model):
             
         
         # self.model = torch_neuronx.dynamic_batch(self.model)
-        self.model = torch_neuronx.DataParallel(self.model)
+        # self.model = torch_neuronx.DataParallel(self.model)
         
         
         self.eval()
