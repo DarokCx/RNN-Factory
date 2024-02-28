@@ -3,9 +3,8 @@
 #include <torch/torch.h>
 #include "torchneuron/register.h"
 
-torch::Tensor forward_cpu(torch::Tensor &s, torch::Tensor &r, torch::Tensor &k, torch::Tensor &v, torch::Tensor &w, torch::Tensor &u);
 
-torch::Tensor forward_cpu_shape(torch::Tensor &s, torch::Tensor &r, torch::Tensor &k, torch::Tensor &v, torch::Tensor &w, torch::Tensor &u) {
+torch::Tensor forward_cpu_shape(const torch::Tensor &s, const torch::Tensor &r, const torch::Tensor &k, const torch::Tensor &v, const torch::Tensor &w, const torch::Tensor &u) {
     
    int64_t B = r.size(0);
    int64_t T = r.size(1);
