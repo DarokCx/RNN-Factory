@@ -112,44 +112,33 @@ class RWKV_TimeMix(torch.nn.Module):
         xr = modified_lerp(x, self.time_mix_r, xx)
         xg = modified_lerp(x, self.time_mix_g, xx)
 
-        r = self.receptance(xr).view(B,T,H,-1) # BHTK
-        k = self.key(xk) .view(B,T,H,-1)     # BHTK
-        v = self.value(xv) .view(B,T,H,-1)   # BHTV
+        r = self.receptance(xr).view(B,T,H,-1,1) # BHTK
+        k = self.key(xk) .view(B,T,H,1,-1)     # BHTK
+        v = self.value(xv) .view(B,T,H,-1,1)   # BHTV
         g = self.silu(self.gate(xg))
 
-        w = torch.exp(-torch.exp(self.time_decay.float())).view(1,1,H,-1)
+        w = torch.exp(-torch.exp(self.time_decay.float())).view(1,H,1,-1).to(x.dtype)
 
-        u = self.time_faaaa.float().view(1,1,H,-1)
+        u = self.time_faaaa.view(1,H,1,-1).to(x.dtype)
 
         # Logits and state
-        wkv_state = last_state_wkv.float().view(B,H,K,V)
+        wkv_state = last_state_wkv.view(B,H,K,V).clone().to(r.dtype)
         
         out = torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
         
         for t in range(T):
-
-                for i in range(K):
-
                     
-                    kkk = k[:,t,:,i:i+1] 
-                    uuu = u[:,:,:,i:i+1]
-                    rrr = r[:,t,:,i:i+1]
-                    www = w[:,:,:,i:i+1]
+                kkk = k[:,t] 
+                rrr = r[:,t]
+                vvv = v[:,t]
+                
+                atu = vvv @ kkk
+                
+                sssatuuuu = ((atu*u)+wkv_state)
+                
+                out[:,t] += (sssatuuuu@rrr).view(B,H,V)
 
-
-                    vvv = v[:,t,:]
-                    
-                    atu = vvv * kkk
-
-                    sss = wkv_state[:,:,i]
-
-                    sssatuuuu = ((atu*uuu)+sss)
-                    
-                    
-
-                    out[:,t,:] += (sssatuuuu*rrr).view(B,H,V)
-
-                    wkv_state[:,:,i] = ((sss*www)+atu).view(B,H,V)
+                wkv_state = ((wkv_state*w)+atu).view(B,H,K,V)
                         
                         
 
