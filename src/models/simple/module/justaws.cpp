@@ -11,7 +11,7 @@ torch::Tensor forward_cpu_compute(int64_t B, int64_t T, int64_t C, int64_t H, to
     auto uu = u.accessor<float, 2>();
     auto ss = s.accessor<float, 4>();
     
-    auto y = torch::zeros({B, H, T + (C/H), C/H});
+    auto y = torch::zeros({B, H, T + (C/H), C/H}, torch::kFloat);
 
     auto out = y.accessor<float, 4>();
 
