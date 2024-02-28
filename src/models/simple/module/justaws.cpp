@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <torch/torch.h>
 
-torch::Tensor forward_cpu_compute(int64_t B, int64_t T, int64_t C, int64_t H, torch::Tensor &s, torch::Tensor &r, torch::Tensor &k, torch::Tensor &v, torch::Tensor &w, torch::Tensor &u) {
+torch::Tensor forward_cpu_compute(int B, int T, int C, int H, torch::Tensor &s, torch::Tensor &r, torch::Tensor &k, torch::Tensor &v, torch::Tensor &w, torch::Tensor &u) {
     
     auto rr = r.accessor<float, 4>();
     auto kk = k.accessor<float, 4>();
