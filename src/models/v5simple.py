@@ -21,7 +21,7 @@ class v5simple( Model):
         
         super(v5simple, self).__init__()
         self.device = torch.device("cpu")
-        self.dtype = torch.bfloat16
+        self.dtype = torch.float16
         
         # check existence of args.load_model+ ".comp"
         if not os.path.exists(args.load_model+ ".comp"):
@@ -35,22 +35,23 @@ class v5simple( Model):
             self.head_size = self.model.head_size
             self.heads = self.model.n_head
             
-            
-            import torch_neuronx
-            from torch_neuronx.xla_impl import custom_op
-            custom_op.load(
-                    name="wkv5",
-                    compute_srcs=['./src/models/simple/module/justaws.cpp'],
-                    shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-                    multicore=False,
-                    verbose=True,
-                )  
-            
-            self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)),
-                                                compiler_args=['O1'],
-                                                )
-            torch.jit.save(self.model, args.load_model+ ".comp")
-            
+            try:
+                import torch_neuronx
+                from torch_neuronx.xla_impl import custom_op
+                custom_op.load(
+                        name="wkv5",
+                        compute_srcs=['./src/models/simple/module/justaws.cpp'],
+                        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+                        multicore=False,
+                        verbose=True,
+                    )  
+                
+                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1],[1]]),*self.new_state(2)),
+                                                    compiler_args=['O1'],
+                                                    )
+                torch.jit.save(self.model, args.load_model+ ".comp")
+            except:
+                pass
            
             
             # from torch.quantization import quantize_dynamic
