@@ -46,9 +46,8 @@ class v5simple( Model):
                         verbose=True,
                     )  
                 
-                batch = 1
-                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batch),*self.new_state(batch)),inline_weights_to_neff=False,
-                                                 compiler_args=['-O1'],
+                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]),*self.new_state(1)),
+                                                 compiler_args=['O1'],
                                                  )
                 torch.jit.save(self.model, args.load_model+ ".comp")
             
