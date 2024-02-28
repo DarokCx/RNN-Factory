@@ -4,6 +4,13 @@
 
 torch::Tensor forward_cpu(const torch::Tensor &s, const torch::Tensor &r, const torch::Tensor &k, const torch::Tensor &v, const torch::Tensor &w, const torch::Tensor &u) {
     
+    printf("forward_cpu\n");
+    printf("s: %d%d&d%d\n", s.size(0), s.size(1), s.size(2), s.size(3));
+    printf("r: %d%d&d%d\n", r.size(0), r.size(1), r.size(2), r.size(3));
+    printf("k: %d%d&d%d\n", k.size(0), k.size(1), k.size(2), k.size(3));
+    printf("v: %d%d&d%d\n", v.size(0), v.size(1), v.size(2), v.size(3));
+    printf("w: %d%d\n", w.size(0), w.size(1));
+    printf("u: %d%d\n", u.size(0), u.size(1));
     auto rr = r.accessor<float, 4>();
     auto kk = k.accessor<float, 4>();
     auto vv = v.accessor<float, 4>();
