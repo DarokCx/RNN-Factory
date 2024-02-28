@@ -35,8 +35,15 @@ class v5simple( Model):
             self.head_size = self.model.head_size
             self.heads = self.model.n_head
             
+            isinfrenciam = False
+            
             try:
                 import torch_neuronx
+                isinfrenciam = True
+            except:
+                pass 
+            
+            if isinfrenciam:
                 from torch_neuronx.xla_impl import custom_op
                 custom_op.load(
                         name="wkv5",
@@ -50,8 +57,7 @@ class v5simple( Model):
                                                     compiler_args=['-O1'],
                                                     )
                 torch.jit.save(self.model, args.load_model+ ".comp")
-            except:
-                pass
+            
            
             
             # from torch.quantization import quantize_dynamic
