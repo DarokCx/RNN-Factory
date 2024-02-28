@@ -21,7 +21,7 @@ class v5simple( Model):
         
         super(v5simple, self).__init__()
         self.device = torch.device("cpu")
-        self.dtype = torch.float16
+        self.dtype = torch.bfloat16
         
         # check existence of args.load_model+ ".comp"
         if not os.path.exists(args.load_model+ ".comp"):
