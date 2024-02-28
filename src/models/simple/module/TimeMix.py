@@ -5,22 +5,17 @@ from .rwkv_inner import rwkv_inner
 import os
 # try:
 import torch_neuronx
-try:
-    custom_op.load_library('libwkv5.so')
-except:
-    from torch_neuronx.xla_impl import custom_op
+
+from torch_neuronx.xla_impl import custom_op
 
 
-    custom_op.load(
-        name="wkv5",
-        compute_srcs=['./src/models/simple/module/justaws.cpp'],
-        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-        multicore=False,
-        verbose=True,
-        build_directory=os.getcwd(),
-    )
-    
-    custom_op.load_library('libwkv5.so')
+custom_op.load(
+    name="wkv5",
+    compute_srcs=['./src/models/simple/module/justaws.cpp'],
+    shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+    multicore=False,
+    verbose=True,
+)
 # except:
 #     from torch.utils.cpp_extension import load
 #     wkv5_cuda = load(name="wkv5", sources=["./src/models/simple/module/customawsoperator.cpp"],
@@ -124,7 +119,7 @@ class RWKV_TimeMix(torch.nn.Module):
         km = k.contiguous()
         vm = v.contiguous()
         
-        out = torch.ops.TimeMix.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
+        out = torch.ops.my_ops.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
                     
         x_logits =  out[:,:,:T].contiguous().transpose(1,2).reshape(B, T, C).bfloat16()
 
