@@ -9,7 +9,7 @@ torch::Tensor forward_cpu(const torch::Tensor &s, const torch::Tensor &r, const 
     auto vv = v.accessor<float, 4>();
     auto ww = w.accessor<float, 2>();
     auto uu = u.accessor<float, 2>();
-    auto ss = s.accessor<float, 41>();
+    auto ss = s.accessor<float, 4>();
 
     int64_t B = r.size(0);
     int64_t T = r.size(1);
