@@ -5,15 +5,22 @@ from .rwkv_inner import rwkv_inner
 import os
 # try:
 import torch_neuronx
-from torch_neuronx.xla_impl import custom_op
+try:
+    custom_op.load_library('libwkv5.so')
+except:
+    from torch_neuronx.xla_impl import custom_op
 
-custom_op.load(
-    name="wkv5",
-    compute_srcs=['./src/models/simple/module/justaws.cpp'],
-    shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
-    multicore=False,
-    verbose=True,
-)
+
+    custom_op.load(
+        name="wkv5",
+        compute_srcs=['./src/models/simple/module/justaws.cpp'],
+        shape_srcs=['./src/models/simple/module/justawsshape.cpp'],
+        multicore=False,
+        verbose=True,
+        build_directory=os.getcwd(),
+    )
+    
+    custom_op.load_library('libwkv5.so')
 # except:
 #     from torch.utils.cpp_extension import load
 #     wkv5_cuda = load(name="wkv5", sources=["./src/models/simple/module/customawsoperator.cpp"],
