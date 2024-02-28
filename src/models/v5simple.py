@@ -36,7 +36,7 @@ class v5simple( Model):
             self.heads = self.model.n_head
             
             
-            
+            import torch_neuronx
             from torch_neuronx.xla_impl import custom_op
             custom_op.load(
                     name="wkv5",
