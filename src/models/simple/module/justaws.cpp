@@ -4,13 +4,6 @@
 
 torch::Tensor forward_cpu(const torch::Tensor &s, const torch::Tensor &r, const torch::Tensor &k, const torch::Tensor &v, const torch::Tensor &w, const torch::Tensor &u) {
     
-    // printf("forward_cpu\n");
-    // printf("s: %d\n", int(s.dim()));
-    // printf("r: %d\n", int(r.dim()));
-    // printf("k: %d\n", int(k.dim()));
-    // printf("v: %d\n", int(v.dim()));
-    // printf("w: %d\n", int(w.dim()));
-    // printf("u: %d\n", int(u.dim()));
     auto rr = r.accessor<float, 4>();
     auto kk = k.accessor<float, 4>();
     auto vv = v.accessor<float, 4>();
