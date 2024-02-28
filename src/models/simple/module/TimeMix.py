@@ -23,6 +23,25 @@ except:
     wkv5 = load(name="my_ops", sources=["./src/models/simple/module/customawsoperator.cpp"],
                                 verbose=True, extra_cflags=["-O3", "-march=native", "-fPIC"])
 
+class fillGroupNorm(nn.Module):
+    def __init__(self, n_head, dim_att, eps=1e-5):
+        super().__init__()
+        self.n_head = n_head
+        self.dim_att = dim_att
+        self.dims = dim_att // n_head
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim_att))
+        self.bias = nn.Parameter(torch.zeros(dim_att))
+
+    def forward(self, x):
+        x = x.reshape(-1, self.n_head, self.dims)
+        mean = x.mean(dim=-1, keepdim=True)
+        std = x.std(dim=-1, keepdim=True, unbiased=False)
+        x = (x - mean) / (std + self.eps)
+        x = x.reshape(-1, self.dim_att)
+        x = x * self.weight + self.bias
+        
+        return x
 
 # RWKV TimeMix module
 class RWKV_TimeMix(torch.nn.Module):
@@ -75,7 +94,7 @@ class RWKV_TimeMix(torch.nn.Module):
         self.value = nn.Linear(n_embd, dim_att, bias=False)
         self.output = nn.Linear(dim_att, n_embd, bias=False)
         self.gate = nn.Linear(n_embd, dim_att, bias=False)
-        self.ln_x = nn.GroupNorm(n_head, dim_att, eps=64e-5)
+        self.ln_x = fillGroupNorm(n_head, dim_att, eps=64e-5)
 
         self.chunk_len = chunk_len
         self.precision = precision
