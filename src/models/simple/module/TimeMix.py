@@ -1,16 +1,6 @@
 # Dependencies
 from .CoreDependencies import *
 from .OptimizedOps import modified_lerp
-from .rwkv_inner import rwkv_inner
-import os
-try:
-    import torch_neuronx      
-    
-    wkv5 = torch.ops.my_ops
-except:
-    from torch.utils.cpp_extension import load
-    wkv5 = load(name="my_ops", sources=["./src/models/simple/module/customawsoperator.cpp"],
-                                verbose=True, extra_cflags=["-O3", "-march=native", "-fPIC"])
 
 class fillGroupNorm(nn.Module):
     def __init__(self, n_head, dim_att, eps=1e-5):
@@ -90,6 +80,13 @@ class RWKV_TimeMix(torch.nn.Module):
         
         self.silu = nn.SiLU()
         
+    def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs):
+        a = super()._load_from_state_dict(state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs)
+        
+        self.time_decay = torch.exp(-torch.exp(self.time_decay.float())).view(1,self.n_head,1,-1)
+    
+        return a
+        
         
 
     def forward(self, x, last_state_shift, last_state_wkv):
@@ -117,14 +114,15 @@ class RWKV_TimeMix(torch.nn.Module):
         v = self.value(xv) .view(B,T,H,-1,1)   # BHTV
         g = self.silu(self.gate(xg))
 
-        w = torch.exp(-torch.exp(self.time_decay.float())).view(1,H,1,-1).to(x.dtype)
+        w = self.time_decay
 
         u = self.time_faaaa.view(1,H,1,-1).to(x.dtype)
 
         # Logits and state
         wkv_state = last_state_wkv.view(B,H,K,V).clone().to(r.dtype)
         
-        out = torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
+        x[:] = 0.0
+        out = x#torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
         
         for t in range(T):
                     
