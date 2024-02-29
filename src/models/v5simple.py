@@ -31,8 +31,8 @@ class v5simple( Model):
             
             self.model = RWKV(load_model=args.load_model)
             self.model = self.model.to(self.device)
-            self.model = self.model.eval()
             self.model = self.model.to(self.dtype)
+            self.model = self.model.eval()
             self.layers = self.model.n_layer
             self.hidden = self.model.n_embd
             self.head_size = self.model.head_size
@@ -54,8 +54,8 @@ class v5simple( Model):
                 #         multicore=False,
                 #         verbose=True,
                 #     )  
-                model_support = torch_neuronx.analyze(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
-                print(json.dumps(model_support,indent=4))
+                # model_support = torch_neuronx.analyze(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
+                # print(json.dumps(model_support,indent=4))
                 
                 self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)),
                                                     compiler_args=['-O1'],
