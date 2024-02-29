@@ -84,7 +84,7 @@ class RWKV_TimeMix(torch.nn.Module):
         a = super()._load_from_state_dict(state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs)
         
         self.time_decay = nn.Parameter(torch.exp(-torch.exp(self.time_decay.float())).view(1,self.n_head,1,-1))
-    
+        self.time_faaaa = nn.Parameter(self.time_faaaa.view(1,self.n_head,1,-1))
         return a
         
         
@@ -101,46 +101,37 @@ class RWKV_TimeMix(torch.nn.Module):
         V = K
 
         # Perform the tokenshift, and get the respective state
-        xx = torch.concat((last_state_shift.unsqueeze(1), x[:, :-1]), dim=1)
+        output = torch.concat((last_state_shift.unsqueeze(1), x[:, :-1]), dim=1)
 
         # Get the xk, xv, xr, xg, and rkvg
-        xk = modified_lerp(x, self.time_mix_k, xx)
-        xv = modified_lerp(x, self.time_mix_v, xx)
-        xr = modified_lerp(x, self.time_mix_r, xx)
-        xg = modified_lerp(x, self.time_mix_g, xx)
+        xk = modified_lerp(x, self.time_mix_k, output)
+        xv = modified_lerp(x, self.time_mix_v, output)
+        xr = modified_lerp(x, self.time_mix_r, output)
+        xg = modified_lerp(x, self.time_mix_g, output)
 
-        r = self.receptance(xr).view(B,T,H,-1,1) # BHTK
-        k = self.key(xk) .view(B,T,H,1,-1)     # BHTK
-        v = self.value(xv) .view(B,T,H,-1,1)   # BHTV
+        
         g = self.silu(self.gate(xg))
         
-        u = self.time_faaaa.view(1,H,1,-1).to(x.dtype)
-
-        # Logits and state
         
-        xx[:] = 0.0
-        out = xx.view(B, T, H, V)
         #torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
         
+        r = self.receptance(xr).view(B,T,H,-1,1) # BTH1Z
+        k = self.key(xk) .view(B,T,H,1,-1)       # BTH1Z
+        v = self.value(xv) .view(B,T,H,-1,1)     # BTHZ1
+        
+        kv = v @ k # BTHZ1 @ BTH1Z = BTHZZ
+         
         for t in range(T):
-                    
-                kkk = k[:,t] 
-                rrr = r[:,t]
-                vvv = v[:,t]
                 
-                atu = vvv @ kkk
-                
-                sssatuuuu = ((atu*u)+last_state_wkv)
-                
-                out[:,t] += (sssatuuuu@rrr).view(B,H,V)
+                # reuse output as a buffer
+                output[:,t] =  ((last_state_wkv + self.time_faaaa * kv[:,t]) @ r[:,t]).view(B,C)
 
-                last_state_wkv = ((last_state_wkv*self.time_decay)+atu).view(B,H,K,V)
+                last_state_wkv = last_state_wkv * self.time_decay + kv[:,t]
                         
-                        
-        x_logits =  out.reshape(B, T, C)
+       
 
         # Reshape and normalize the logits
-        x_logits = self.ln_x(x_logits).view(B, T, C)
+        x_logits = self.ln_x(output).view(B, T, C)
         x_logits = self.output(x_logits * g)
 
         # Return the logits and the state

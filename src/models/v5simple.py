@@ -66,8 +66,8 @@ class v5simple( Model):
                 
             
             else:
-                self.model = torch.jit.trace(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
-                
+                # self.model = torch.jit.trace(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
+                pass
             
             
                 # self.model = torch.compile(self.model, fullgraph= True,dynamic= True, mode="max-autotune")
