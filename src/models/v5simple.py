@@ -54,6 +54,8 @@ class v5simple( Model):
                 #         multicore=False,
                 #         verbose=True,
                 #     )  
+                model_support = torch_neuronx.analyze(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
+                print(json.dumps(model_support,indent=4))
                 
                 self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)),
                                                     compiler_args=['-O1'],
@@ -109,8 +111,7 @@ class v5simple( Model):
         
         if isinfrenciam:
             # self.model = torch_neuronx.dynamic_batch(self.model)
-            model_support = torch_neuronx.analyze(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
-            print(json.dumps(model_support,indent=4))
+            
             self.model = torch_neuronx.DataParallel(self.model)
         
         
