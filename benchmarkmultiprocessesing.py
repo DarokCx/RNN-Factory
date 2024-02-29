@@ -16,18 +16,10 @@ args = types.SimpleNamespace()
 args.micro_bsz = 5
 import inquirer
 questions = [
-  inquirer.List('device',
-                message="Which device do you want to use?",
-                choices=['cpu', 'cuda'],
-            ),
             # choose between bfloat16/float32
-            inquirer.List('precision',
-                message="Which precision do you want to use?",
-                choices=['bfloat16', 'float32', 'uint8'],
-            ),
             inquirer.List('size',
                 message="How big do you want the model to be?",
-                choices=['14B','7B', '3B', '1.5B'],
+                choices=['7B', '3B', '1.5B'],
             ),
             inquirer.List('type',
                 message="Which do you want to benchmark?",
@@ -35,7 +27,7 @@ questions = [
             ),
             inquirer.List('stream increment',
                 message="How many streams do you want to increment by?",
-                choices=['8', '16', '32', '64', '128', '256'],
+                choices=['1', '2', '4' ,'8', '16', '32', '64', '128', '256'],
             ),
 ]
 
@@ -51,25 +43,15 @@ args.linear = torch.nn.Linear
 
 args.vocab_size = 2**16
 
+znargs = types.SimpleNamespace()
 if answers['size'] == '3B':
-    args.n_layer = 32
-    args.n_embd = 2560
-    args.n_head = 40
+    znargs.load_model = f"./3b.pth"
 
 if answers['size'] == '7B':
-    args.n_layer = 40
-    args.n_embd = 4096
-    args.n_head = 64
-
-if answers['size'] == '14B':
-    args.n_layer = 48
-    args.n_embd = 5120
-    args.n_head = 80
+    znargs.load_model = f"./7b.pth"
 
 if answers['size'] == '1.5B':
-    args.n_layer = 24
-    args.n_embd = 2048
-    args.n_head = 32
+   znargs.load_model = f"./1B5.pth"
     
 # if answers['precision'] == 'uint8':
 #     args.load_model="/home/harrison/CUDAMAX/Eagle7B_Q8.safetensors"
@@ -77,13 +59,9 @@ if answers['size'] == '1.5B':
 # else:   
 
 #     model = RWKV_v5(args)
-znargs = types.SimpleNamespace()
-znargs.load_model = f"./1B5.pth"
+
 model = v5simple(znargs)
 # choose between cpu/gpu
-
-device = answers['device']
-precision = answers['precision']
 
 
 TEMPERATURE = 0.9
@@ -91,15 +69,7 @@ top_p = 0.9
 
 model = model.eval()
 model = model.requires_grad_(False)
-# model = model.float()
-
-if precision == 'bfloat16':
-    model = model.bfloat16()
-else:
-    model = model.float()
-
-if device == 'cuda':
-    model = model.cuda()
+model = model.bfloat16()
 
 print ("Memory use:", torch.cuda.memory_allocated() / 1024 ** 3, "GB")
 

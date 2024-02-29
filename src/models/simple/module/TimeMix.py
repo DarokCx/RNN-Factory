@@ -141,14 +141,6 @@ class RWKV_TimeMix(torch.nn.Module):
                 wkv_state = ((wkv_state*w)+atu).view(B,H,K,V)
                         
                         
-
-        
-        # rm = r.contiguous()
-        # km = k.contiguous()
-        # vm = v.contiguous()
-        
-        # out = wkv5.forward_cpu(wkv_state, rm.float(), km.float(), vm.float(), w, u)
-                    
         x_logits =  out.reshape(B, T, C)
 
         # Reshape and normalize the logits
