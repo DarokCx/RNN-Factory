@@ -83,7 +83,7 @@ class RWKV_TimeMix(torch.nn.Module):
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs):
         a = super()._load_from_state_dict(state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs)
         
-        self.time_decay = torch.exp(-torch.exp(self.time_decay.float())).view(1,self.n_head,1,-1)
+        self.time_decay = nn.Parameter(torch.exp(-torch.exp(self.time_decay.float())).view(1,self.n_head,1,-1))
     
         return a
         
@@ -113,16 +113,15 @@ class RWKV_TimeMix(torch.nn.Module):
         k = self.key(xk) .view(B,T,H,1,-1)     # BHTK
         v = self.value(xv) .view(B,T,H,-1,1)   # BHTV
         g = self.silu(self.gate(xg))
-
-        w = self.time_decay
-
+        
         u = self.time_faaaa.view(1,H,1,-1).to(x.dtype)
 
         # Logits and state
-        wkv_state = last_state_wkv.view(B,H,K,V).clone().to(r.dtype)
+        wkv_state = last_state_wkv.view(B,H,K,V)
         
-        x[:] = 0.0
-        out = x#torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
+        xx[:] = 0.0
+        out = xx.view(B, T, H, V)
+        #torch.zeros(B, T, H, V, dtype=torch.bfloat16, device=x.device)
         
         for t in range(T):
                     
@@ -136,7 +135,7 @@ class RWKV_TimeMix(torch.nn.Module):
                 
                 out[:,t] += (sssatuuuu@rrr).view(B,H,V)
 
-                wkv_state = ((wkv_state*w)+atu).view(B,H,K,V)
+                wkv_state[:] = ((wkv_state*self.time_decay)+atu).view(B,H,K,V)
                         
                         
         x_logits =  out.reshape(B, T, C)
@@ -146,7 +145,7 @@ class RWKV_TimeMix(torch.nn.Module):
         x_logits = self.output(x_logits * g)
 
         # Return the logits and the state
-        return (x_logits, shift_state_out, wkv_state)
+        return (x_logits, shift_state_out, last_state_wkv)
     
 
 
