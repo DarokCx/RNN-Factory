@@ -96,6 +96,7 @@ class v5simple( Model):
                     "head_size": self.head_size
                 }, f)
         else:
+            import torch_neuronx
             self.model = torch.jit.load(args.load_model+ ".comp")
             with open(args.load_model+ ".comp.json", "r") as f:
                 data = json.load(f)
