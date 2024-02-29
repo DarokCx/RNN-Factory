@@ -225,8 +225,8 @@ class RWKV(nn.Module):
 
 
 
-        # new_shift_states = torch.zeros_like(last_shift_states)
-        # new_wkv_states = torch.zeros_like(last_wkv_states)
+        new_shift_states = torch.zeros_like(last_shift_states)
+        new_wkv_states = torch.zeros_like(last_wkv_states)
         
         # last_shift_states can be None, when we are performing direct inference
      
@@ -236,7 +236,7 @@ class RWKV(nn.Module):
 
         for i,b in enumerate(self.blocks):
             # print("last_state", cur_bs_list.shift_states.)
-            x, last_shift_states[:,i,0],last_shift_states[:,i,1], last_wkv_states[:,i]  = b(x, last_shift_states[:,i,0],last_shift_states[:,i,1], last_wkv_states[:,i])
+            x, new_wkv_states[:,i,0],new_shift_states[:,i,1], new_shift_states[:,i]  = b(x, last_shift_states[:,i,0],last_shift_states[:,i,1], last_wkv_states[:,i])
            
 
 
