@@ -43,6 +43,8 @@ class v5simple( Model):
             except:
                 pass 
             
+            batchsize = 1
+            
             if isinfrenciam:
                 # from torch_neuronx.xla_impl import custom_op
                 # custom_op.load(
@@ -53,14 +55,18 @@ class v5simple( Model):
                 #         verbose=True,
                 #     )  
                 
-                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1],[1]]),*self.new_state(2)),
+                self.model = torch_neuronx.trace(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)),
                                                     compiler_args=['-O1'],
                                                     )
                 torch.jit.save(self.model, args.load_model+ ".comp")
                 
             
             else:
-                self.model = torch.jit.script(self.model)
+                self.model = torch.jit.trace(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
+                
+            
+            
+                # self.model = torch.compile(self.model, fullgraph= True,dynamic= True, mode="max-autotune")
             
             # from torch.quantization import quantize_dynamic
             # self.model = quantize_dynamic(

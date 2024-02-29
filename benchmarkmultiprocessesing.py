@@ -66,10 +66,12 @@ model = v5simple(znargs)
 
 TEMPERATURE = 0.9
 top_p = 0.9
+device = "cuda"
+prec = "bfloat16"
 
+model = model.bfloat16()
 model = model.eval()
 model = model.requires_grad_(False)
-model = model.bfloat16()
 
 print ("Memory use:", torch.cuda.memory_allocated() / 1024 ** 3, "GB")
 
@@ -136,7 +138,7 @@ import matplotlib.pyplot as plt
 plt.plot([i[0] for i in stats])
 plt.ylabel('Absolute tokens per second')
 plt.xlabel("Concurrent streams/Simultaneous requests" if answers['type'] == 'Multiprocessing' else "Token Processing")
-plt.title(f'''RWKV V5 {answers['type']} Benchmark\nDetails:{answers["size"]} ({answers["precision"]}) {device}\n Device: {
+plt.title(f'''RWKV V5 {answers['type']} Benchmark\nDetails:{answers["size"]} ({prec}) {device}\n Device: {
     torch.cuda.get_device_name(0) if device == "cuda" else cpuinfo.get_cpu_info()["brand_raw"]
 }''')
 plt.xticks(range(0,samples),[str(int(1 if i == 0 else i*increase)) for i in range(0,samples)])
