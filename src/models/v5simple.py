@@ -24,6 +24,8 @@ class v5simple( Model):
         self.dtype = torch.bfloat16
         
         isinfrenciam = False
+            
+        batchsize = 1
         # check existence of args.load_model+ ".comp"
         if not os.path.exists(args.load_model+ ".comp"):
             
@@ -42,8 +44,6 @@ class v5simple( Model):
                 isinfrenciam = True
             except:
                 pass 
-            
-            batchsize = 1
             
             if isinfrenciam:
                 # from torch_neuronx.xla_impl import custom_op
