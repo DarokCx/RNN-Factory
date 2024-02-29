@@ -59,8 +59,7 @@ class v5simple( Model):
                                                     compiler_args=['-O1'],
                                                     )
                 
-                model_support = torch_neuronx.analyze(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
-                print(json.dumps(model_support,indent=4))
+                
                 torch.jit.save(self.model, args.load_model+ ".comp")
                 
             
@@ -109,6 +108,8 @@ class v5simple( Model):
         
         if isinfrenciam:
             # self.model = torch_neuronx.dynamic_batch(self.model)
+            model_support = torch_neuronx.analyze(self.model, (torch.tensor([[1]]*batchsize),*self.new_state(batchsize)))
+            print(json.dumps(model_support,indent=4))
             self.model = torch_neuronx.DataParallel(self.model)
         
         
