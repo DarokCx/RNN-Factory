@@ -121,12 +121,12 @@ class RWKV_TimeMix(torch.nn.Module):
         
         kv = v @ k # BTHZ1 @ BTH1Z = BTHZZ
         
-        zn = torch.zeros_like(output)
+        zn = torch.zeros(B, T, H, V, 1, dtype=x.dtype, device=x.device)
          
         for t in range(T):
                 
                 # reuse output as a buffer
-                zn[:,t] = ((last_state_wkv + self.time_faaaa * kv[:,t]) @ r[:,t]).view(B,C)
+                zn[:,t] = ((last_state_wkv + self.time_faaaa * kv[:,t]) @ r[:,t])
 
                 last_state_wkv = last_state_wkv * self.time_decay + kv[:,t]
                         
