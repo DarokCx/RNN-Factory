@@ -139,7 +139,7 @@ plt.plot([i[0] for i in stats])
 plt.ylabel('Absolute tokens per second')
 plt.xlabel("Concurrent streams/Simultaneous requests" if answers['type'] == 'Multiprocessing' else "Token Processing")
 plt.title(f'''RWKV V5 {answers['type']} Benchmark\nDetails:{answers["size"]} ({prec}) {device}\n Device: {
-    torch.cuda.get_device_name(0) if device == "cuda" else cpuinfo.get_cpu_info()["brand_raw"]
+    "inferencia"
 }''')
 plt.xticks(range(0,samples),[str(int(1 if i == 0 else i*increase)) for i in range(0,samples)])
 plt.ylim(bottom=0)
