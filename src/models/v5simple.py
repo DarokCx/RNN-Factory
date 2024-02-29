@@ -23,6 +23,7 @@ class v5simple( Model):
         self.device = torch.device("cpu")
         self.dtype = torch.bfloat16
         
+        isinfrenciam = False
         # check existence of args.load_model+ ".comp"
         if not os.path.exists(args.load_model+ ".comp"):
             
@@ -35,7 +36,6 @@ class v5simple( Model):
             self.head_size = self.model.head_size
             self.heads = self.model.n_head
             
-            isinfrenciam = False
             
             try:
                 import torch_neuronx
@@ -57,6 +57,7 @@ class v5simple( Model):
                                                     compiler_args=['-O1'],
                                                     )
                 torch.jit.save(self.model, args.load_model+ ".comp")
+                
             
             else:
                 self.model = torch.jit.script(self.model)
@@ -94,10 +95,12 @@ class v5simple( Model):
                 self.hidden = data["hidden"]
                 self.heads = data["heads"]
                 self.head_size = data["head_size"]
+                isinfrenciam = True
             
         
-        # self.model = torch_neuronx.dynamic_batch(self.model)
-        # self.model = torch_neuronx.DataParallel(self.model)
+        if isinfrenciam:
+            # self.model = torch_neuronx.dynamic_batch(self.model)
+            self.model = torch_neuronx.DataParallel(self.model)
         
         
         self.eval()
